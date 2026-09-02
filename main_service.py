@@ -98,7 +98,7 @@ def update_loop():
         current_hour = datetime.now().strftime("%H:%M:%S")
         print(f"[{current_hour}] Zaktualizowano trip_updates.pb ({matched_count} kursow) w {exec_time}s.")
 
-        time.sleep(5)
+        time.sleep(2)
 
 @app.route("/trip_updates.pb")
 def serve_gtfs_rt():
