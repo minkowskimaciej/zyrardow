@@ -66,16 +66,38 @@ def update_loop():
 
             my_stop_id = stop_map[kp_stop_id]["my_stop_id"]
 
-            matches = my_gtfs[
+            # Krok 1: Filtrowanie wstępne po linii i przystanku
+            candidates = my_gtfs[
                 (my_gtfs["route_short_name"].str.strip() == kp_line) &
-                (my_gtfs["stop_id"] == my_stop_id) &
-                (my_gtfs["static_time"] == kp_time)
-            ]
+                (my_gtfs["stop_id"] == my_stop_id)
+            ].copy()
 
-            if not matches.empty:
-                match = matches.iloc[0]
-                my_trip_id = match["trip_id"]
-                my_stop_sequence = int(match["stop_sequence"])
+            if candidates.empty:
+                continue
+
+            # Krok 2: Inteligentne dopasowanie czasowe (zamiana godzin na minuty od północy dla bezpieczeństwa)
+            try:
+                kp_parts = kp_time.split(":")
+                kp_total_minutes = int(kp_parts[0]) * 60 + int(kp_parts[1])
+
+                # Wyciągamy czas statyczny i konwertujemy na minuty od północy
+                cand_parts = candidates["static_time"].str.split(":", expand=True)
+                candidates["cand_total_minutes"] = cand_parts[0].astype(int) * 60 + cand_parts[1].astype(int)
+
+                # Szukamy kursu, którego rozkład jest najbliższy temu z API (np. w zakresie +/- 10 minut)
+                candidates["time_diff_abs"] = (candidates["cand_total_minutes"] - kp_total_minutes).abs()
+                
+                # Bierzemy tylko te, które różnią się o maksymalnie 10 minut (żeby nie przypisać złego kursu)
+                valid_candidates = candidates[candidates["time_diff_abs"] <= 10]
+
+                if valid_candidates.empty:
+                    continue
+
+                # Wybieramy ten kurs, który ma najmniejszą różnicę czasu
+                best_match = valid_candidates.loc[valid_candidates["time_diff_abs"].idxmin()]
+
+                my_trip_id = best_match["trip_id"]
+                my_stop_sequence = int(best_match["stop_sequence"])
 
                 entity = feed.entity.add()
                 entity.id = f"tu_{my_trip_id}"
@@ -91,6 +113,9 @@ def update_loop():
 
                 matched_count += 1
 
+            except Exception:
+                # Jeśli coś pójdzie nie tak przy parsowaniu godzin, pomijamy ten wpis zamiast wywalać skrypt
+                continue
         with open("trip_updates.pb", "wb") as f:
             f.write(feed.SerializeToString())
 
