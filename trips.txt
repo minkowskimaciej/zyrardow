@@ -1,0 +1,286 @@
+trip_id,route_id,service_id,trip_headsign,direction_id,shape_id
+0-4853,0,A,Zalew,0,0-ZAL
+0-5169,0,A,Zalew,0,0-ZAL
+0-5174,0,A,Zalew,0,0-ZAL
+0-5188,0,A,Zalew,0,0-ZAL
+0-5189,0,A,Spółdzielcza,1,0-SPO
+0-5190,0,A,Spółdzielcza,1,0-SPO
+0-5191,0,A,Spółdzielcza,1,0-SPO
+0-5192,0,A,Spółdzielcza,1,0-SPO
+0-4786,0,A,Zalew,0,0-ZLW
+0-4787,0,A,Zalew,0,0-ZLW
+0-5124,0,A,Zalew,0,0-ZLW
+0-5126,0,A,Żeromskiego,1,0-ZER
+0-5129,0,A,Żeromskiego,1,0-ZER
+0-5143,0,A,Żeromskiego,1,0-ZER
+1-4504,1,D,Dworzec PKP,0,1-PKP
+1-4524,1,D,Dworzec PKP,0,1-PKP
+1-4513,1,D,Dworzec PKP,0,1-PKP
+1-4514,1,D,Dworzec PKP,0,1-PKP
+1-4525,1,D,Dworzec PKP,0,1-PKP
+1-4528,1,D,Dworzec PKP,0,1-PKP
+1-4529,1,D,Dworzec PKP,0,1-PKP
+1-4531,1,D,Dworzec PKP,0,1-PKP
+1-4534,1,D,Dworzec PKP,0,1-PKP
+1-4535,1,D,Dworzec PKP,0,1-PKP
+1-4536,1,D,Spółdzielcza,1,1-SPO
+1-4537,1,D,Spółdzielcza,1,1-SPO
+1-4538,1,D,Spółdzielcza,1,1-SPO
+1-4539,1,D,Spółdzielcza,1,1-SPO
+1-4540,1,D,Spółdzielcza,1,1-SPO
+1-4543,1,D,Spółdzielcza,1,1-SPO
+1-4891,1,D,Spółdzielcza,1,1-SPO
+1-4890,1,D,Spółdzielcza,1,1-SPO
+1-4892,1,D,Spółdzielcza,1,1-SPO
+1-4893,1,D,Spółdzielcza,1,1-SPO
+1-4894,1,D,Spółdzielcza,1,1-SPO
+2-40,2,E,Spółdzielcza,0,2-SPO
+2-119,2,E,Spółdzielcza,0,2-SPO
+2-4547,2,D,Spółdzielcza,0,2-SPO
+2-4552,2,D,Spółdzielcza,0,2-SPO
+2-4554,2,D,Spółdzielcza,0,2-SPO
+2-4556,2,D,Spółdzielcza,0,2-SPO
+2-4561,2,D,Spółdzielcza,0,2-SPO
+2-4563,2,D,Spółdzielcza,0,2-SPO
+2-4576,2,D,Spółdzielcza,0,2-SPO
+2-4577,2,D,Spółdzielcza,0,2-SPO
+2-6345,2,C,Spółdzielcza,0,2-SPO
+2-6346,2,C,Spółdzielcza,0,2-SPO
+2-4546,2,A,Spółdzielcza,0,2-SPO
+2-4549,2,A,Spółdzielcza,0,2-SPO
+2-4550,2,A,Spółdzielcza,0,2-SPO
+2-4551,2,A,Spółdzielcza,0,2-SPO
+2-4553,2,A,Spółdzielcza,0,2-SPO
+2-4555,2,A,Spółdzielcza,0,2-SPO
+2-4557,2,A,Spółdzielcza,0,2-SPO
+2-4558,2,A,Spółdzielcza,0,2-SPO
+2-4559,2,A,Spółdzielcza,0,2-SPO
+2-4560,2,A,Spółdzielcza,0,2-SPO
+2-4562,2,A,Spółdzielcza,0,2-SPO
+2-4564,2,A,Spółdzielcza,0,2-SPO
+2-4565,2,A,Spółdzielcza,0,2-SPO
+2-4566,2,A,Spółdzielcza,0,2-SPO
+2-4567,2,A,Spółdzielcza,0,2-SPO
+2-4568,2,A,Spółdzielcza,0,2-SPO
+2-4569,2,A,Spółdzielcza,0,2-SPO
+2-4570,2,A,Spółdzielcza,0,2-SPO
+2-4571,2,A,Spółdzielcza,0,2-SPO
+2-4572,2,A,Spółdzielcza,0,2-SPO
+2-4573,2,A,Spółdzielcza,0,2-SPO
+2-4574,2,A,Spółdzielcza,0,2-SPO
+2-4575,2,A,Spółdzielcza,0,2-SPO
+2-4910,2,D,Żeromskiego,1,2-ZER
+2-4578,2,E,Żeromskiego,1,2-ZER
+2-4580,2,E,Żeromskiego,1,2-ZER
+2-4581,2,A,Żeromskiego,1,2-ZER
+2-4582,2,D,Żeromskiego,1,2-ZER
+2-4583,2,A,Żeromskiego,1,2-ZER
+2-4584,2,A,Żeromskiego,1,2-ZER
+2-4585,2,A,Żeromskiego,1,2-ZER
+2-4586,2,D,Żeromskiego,1,2-ZER
+2-4587,2,A,Żeromskiego,1,2-ZER
+2-6347,2,C,Żeromskiego,1,2-ZER
+2-4588,2,D,Żeromskiego,1,2-ZER
+2-4589,2,A,Żeromskiego,1,2-ZER
+2-4590,2,D,Żeromskiego,1,2-ZER
+2-6348,2,C,Żeromskiego,1,2-ZER
+2-4591,2,A,Żeromskiego,1,2-ZER
+2-4592,2,D,Żeromskiego,1,2-ZER
+2-4593,2,A,Żeromskiego,1,2-ZER
+2-4594,2,D,Żeromskiego,1,2-ZER
+2-4595,2,D,Żeromskiego,1,2-ZER
+2-4596,2,A,Żeromskiego,1,2-ZER
+2-4597,2,D,Żeromskiego,1,2-ZER
+2-4598,2,A,Żeromskiego,1,2-ZER
+2-4599,2,A,Żeromskiego,1,2-ZER
+2-4600,2,A,Żeromskiego,1,2-ZER
+2-4601,2,A,Żeromskiego,1,2-ZER
+2-4602,2,A,Żeromskiego,1,2-ZER
+2-4603,2,A,Żeromskiego,1,2-ZER
+2-4604,2,A,Żeromskiego,1,2-ZER
+2-4605,2,A,Żeromskiego,1,2-ZER
+2-4606,2,A,Żeromskiego,1,2-ZER
+2-4607,2,A,Żeromskiego,1,2-ZER
+2-4608,2,A,Żeromskiego,1,2-ZER
+2-4609,2,A,Żeromskiego,1,2-ZER
+2-4909,2,D,Żeromskiego,1,2-ZER
+3-4301,3,D,Międzyborów,0,3-MIE
+3-4302,3,D,Międzyborów,0,3-MIE
+3-4312,3,C,Międzyborów,0,3-MIE
+3-4303,3,D,Międzyborów,0,3-MIE
+3-4313,3,C,Międzyborów,0,3-MIE
+3-4304,3,D,Międzyborów,0,3-MIE
+3-4305,3,D,Międzyborów,0,3-MIE
+3-4314,3,C,Międzyborów,0,3-MIE
+3-4306,3,D,Międzyborów,0,3-MIE
+3-4315,3,C,Międzyborów,0,3-MIE
+3-4307,3,D,Międzyborów,0,3-MIE
+3-4308,3,D,Międzyborów,0,3-MIE
+3-4316,3,C,Międzyborów,0,3-MIE
+3-4309,3,D,Międzyborów,0,3-MIE
+3-4310,3,D,Międzyborów,0,3-MIE
+3-4311,3,D,Międzyborów,0,3-MIE
+3-4317,3,D,Działki OSP,1,3-DZK
+3-4318,3,D,Działki OSP,1,3-DZK
+3-4319,3,D,Działki OSP,1,3-DZK
+3-4328,3,C,Działki OSP,1,3-DZK
+3-4320,3,D,Działki OSP,1,3-DZK
+3-4329,3,C,Działki OSP,1,3-DZK
+3-4321,3,D,Działki OSP,1,3-DZK
+3-4330,3,C,Działki OSP,1,3-DZK
+3-4322,3,D,Działki OSP,1,3-DZK
+3-4323,3,D,Działki OSP,1,3-DZK
+3-4331,3,C,Działki OSP,1,3-DZK
+3-4324,3,D,Działki OSP,1,3-DZK
+3-4325,3,D,Działki OSP,1,3-DZK
+3-4332,3,C,Działki OSP,1,3-DZK
+3-4326,3,D,Działki OSP,1,3-DZK
+3-4327,3,D,Działki OSP,1,3-DZK
+4-4641,4,D,Spółdzielcza,0,4-SPO
+4-4642,4,D,Spółdzielcza,0,4-SPO
+4-4643,4,D,Spółdzielcza,0,4-SPO
+4-4644,4,D,Spółdzielcza,0,4-SPO
+4-4645,4,S,Spółdzielcza,0,4-SPO
+4-4646,4,D,Spółdzielcza,0,4-SPO
+4-4647,4,D,Spółdzielcza,0,4-SPO
+4-4648,4,S,Spółdzielcza,0,4-SPO
+4-4649,4,D,Spółdzielcza,0,4-SPO
+4-4650,4,S,Spółdzielcza,0,4-SPO
+4-4651,4,D,Spółdzielcza,0,4-SPO
+4-4652,4,S,Spółdzielcza,0,4-SPO
+4-4653,4,D,Spółdzielcza,0,4-SPO
+4-4654,4,D,Spółdzielcza,0,4-SPO
+4-4655,4,D,Spółdzielcza,0,4-SPO
+4-4656,4,D,Spółdzielcza,0,4-SPO
+4-4657,4,D,Spółdzielcza,0,4-SPO
+4-4658,4,D,Spółdzielcza,0,4-SPO
+4-4659,4,D,Wiskitki,1,4-WIS
+4-4660,4,D,Wiskitki,1,4-WIS
+4-4661,4,D,Wiskitki,1,4-WIS
+4-4662,4,D,Wiskitki,1,4-WIS
+4-4663,4,S,Wiskitki,1,4-WIS
+4-4676,4,D,Wiskitki,1,4-WIS
+4-4664,4,D,Wiskitki,1,4-WIS
+4-4665,4,D,Wiskitki,1,4-WIS
+4-4666,4,S,Wiskitki,1,4-WIS
+4-4667,4,D,Wiskitki,1,4-WIS
+4-4668,4,S,Wiskitki,1,4-WIS
+4-4669,4,D,Wiskitki,1,4-WIS
+4-4670,4,S,Wiskitki,1,4-WIS
+4-4671,4,D,Wiskitki,1,4-WIS
+4-4672,4,D,Wiskitki,1,4-WIS
+4-4673,4,D,Wiskitki,1,4-WIS
+4-4674,4,D,Wiskitki,1,4-WIS
+4-4675,4,D,Wiskitki,1,4-WIS
+5-4716,5,C,Mostowa,0,5-MOS
+5-4709,5,D,Mostowa,0,5-MOS
+5-4717,5,N,Mostowa,0,5-MOS
+5-4710,5,D,Mostowa,0,5-MOS
+5-4711,5,D,Mostowa,0,5-MOS
+5-4718,5,N,Mostowa,0,5-MOS
+5-4712,5,D,Mostowa,0,5-MOS
+5-4719,5,N,Mostowa,0,5-MOS
+5-4713,5,D,Mostowa,0,5-MOS
+5-4714,5,D,Mostowa,0,5-MOS
+5-4720,5,N,Mostowa,0,5-MOS
+5-6343,5,C,Mostowa,0,5-MOS
+5-4715,5,D,Mostowa,0,5-MOS
+5-4246,5,D,Korytów,1,5-KOR
+5-4700,5,N,Korytów,1,5-KOR
+5-4694,5,D,Korytów,1,5-KOR
+5-4701,5,N,Korytów,1,5-KOR
+5-4695,5,D,Korytów,1,5-KOR
+5-4696,5,D,Korytów,1,5-KOR
+5-4697,5,D,Korytów,1,5-KOR
+5-4702,5,N,Korytów,1,5-KOR
+5-4698,5,D,Korytów,1,5-KOR
+5-4703,5,N,Korytów,1,5-KOR
+5-4704,5,C,Korytów,1,5-KOR
+5-6344,5,C,Korytów,1,5-KOR
+5-4699,5,D,Korytów,1,5-KOR
+7-4235,7,A,Spółdzielcza,0,7-SPO
+7-4236,7,A,Spółdzielcza,0,7-SPO
+7-4237,7,A,Spółdzielcza,0,7-SPO
+7-4238,7,A,Spółdzielcza,0,7-SPO
+7-4239,7,A,Spółdzielcza,0,7-SPO
+7-4240,7,A,Spółdzielcza,0,7-SPO
+7-4241,7,A,Spółdzielcza,0,7-SPO
+7-4242,7,A,Spółdzielcza,0,7-SPO
+7-4724,7,A,Żeromskiego,1,7-ZER
+7-4725,7,A,Żeromskiego,1,7-ZER
+7-4726,7,A,Żeromskiego,1,7-ZER
+7-4727,7,A,Żeromskiego,1,7-ZER
+7-4728,7,A,Żeromskiego,1,7-ZER
+7-4729,7,A,Żeromskiego,1,7-ZER
+7-4730,7,A,Żeromskiego,1,7-ZER
+7-4731,7,A,Żeromskiego,1,7-ZER
+7-4243,7,C,Spółdzielcza,0,7-SPO
+7-4244,7,C,Spółdzielcza,0,7-SPO
+7-4732,7,C,Żeromskiego,1,7-ZER
+7-4733,7,C,Żeromskiego,1,7-ZER
+8-5453,8,D,Spółdzielcza,0,8-SPO
+8-5454,8,D,Spółdzielcza,0,8-SPO
+8-5455,8,D,Spółdzielcza,0,8-SPO
+8-5456,8,D,Spółdzielcza,0,8-SPO
+8-5457,8,D,Spółdzielcza,0,8-SPO
+8-5458,8,D,Spółdzielcza,0,8-SPO
+8-5459,8,D,Spółdzielcza,0,8-SPO
+8-5460,8,D,Spółdzielcza,0,8-SPO
+8-5461,8,D,Spółdzielcza,0,8-SPO
+8-5462,8,D,Spółdzielcza,0,8-SPO
+8-5463,8,D,Spółdzielcza,0,8-SPO
+8-5464,8,D,Spółdzielcza,0,8-SPO
+8-5465,8,D,Spółdzielcza,0,8-SPO
+8-5466,8,D,Wiskitki,1,8-WIS
+8-5467,8,D,Wiskitki,1,8-WIS
+8-5468,8,D,Wiskitki,1,8-WIS
+8-5469,8,D,Wiskitki,1,8-WIS
+8-5470,8,D,Wiskitki,1,8-WIS
+8-5471,8,D,Wiskitki,1,8-WIS
+8-5472,8,D,Wiskitki,1,8-WIS
+8-5473,8,D,Wiskitki,1,8-WIS
+8-5474,8,D,Wiskitki,1,8-WIS
+8-5475,8,D,Wiskitki,1,8-WIS
+8-5476,8,D,Wiskitki,1,8-WIS
+8-5477,8,D,Wiskitki,1,8-WIS
+8-5478,8,D,Wiskitki,1,8-WIS
+9-4759,9,D,Dworzec PKP,0,9-PKP
+9-4761,9,D,Dworzec PKP,0,9-PKP
+9-4763,9,D,Dworzec PKP,0,9-PKP
+9-4772,9,D,Dworzec PKP,0,9-PKP
+9-4774,9,D,Dworzec PKP,0,9-PKP
+9-4775,9,D,Dworzec PKP,0,9-PKP
+9-4777,9,D,Dworzec PKP,0,9-PKP
+9-4778,9,D,Dworzec PKP,0,9-PKP
+9-4784,9,D,Dworzec PKP,0,9-PKP
+9-4895,9,A,Dworzec PKP,0,9-PKP
+9-4896,9,D,Dworzec PKP,0,9-PKP
+9-4897,9,D,Dworzec PKP,0,9-PKP
+9-4898,9,D,Dworzec PKP,0,9-PKP
+9-4899,9,D,Żeromskiego,1,9-ZER
+9-4900,9,D,Żeromskiego,1,9-ZER
+9-4901,9,D,Żeromskiego,1,9-ZER
+9-4902,9,D,Żeromskiego,1,9-ZER
+9-4903,9,D,Żeromskiego,1,9-ZER
+9-4904,9,D,Żeromskiego,1,9-ZER
+9-4905,9,D,Żeromskiego,1,9-ZER
+9-4906,9,D,Żeromskiego,1,9-ZER
+9-4911,9,D,Żeromskiego,1,9-ZER
+9-4912,9,D,Żeromskiego,1,9-ZER
+9-4913,9,D,Żeromskiego,1,9-ZER
+10-5413,10,D,Mostowa,0,10-MOS
+10-5414,10,D,Mostowa,0,10-MOS
+10-5417,10,S,Mostowa,0,10-MOS
+10-5418,10,S,Mostowa,0,10-MOS
+10-5419,10,S,Mostowa,0,10-MOS
+10-5420,10,S,Mostowa,0,10-MOS
+10-5415,10,D,Mostowa,0,10-MOS
+10-5416,10,D,Mostowa,0,10-MOS
+10-5405,10,D,Korytów Las,1,10-KOR
+10-5409,10,S,Korytów Las,1,10-KOR
+10-5410,10,S,Korytów Las,1,10-KOR
+10-5411,10,S,Korytów Las,1,10-KOR
+10-5406,10,D,Korytów Las,1,10-KOR
+10-5412,10,S,Korytów Las,1,10-KOR
+10-5407,10,D,Korytów Las,1,10-KOR
+10-5408,10,D,Korytów Las,1,10-KOR

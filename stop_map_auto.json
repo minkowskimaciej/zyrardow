@@ -1,0 +1,246 @@
+{
+  "2030190:2103478": {
+    "my_stop_id": "dzialki-mlynska-01",
+    "my_stop_name": "Działki Młyńska 01"
+  },
+  "2030190:2103479": {
+    "my_stop_id": "dzialki-mlynska-02",
+    "my_stop_name": "Działki Młyńska 02"
+  },
+  "2030362:2103739": {
+    "my_stop_id": "wiskitki-szkola-51",
+    "my_stop_name": "Wiskitki Szkoła 51"
+  },
+  "2029845:2102891": {
+    "my_stop_id": "1-maja-01",
+    "my_stop_name": "1 Maja 01"
+  },
+  "2029960:2103102": {
+    "my_stop_id": "nowe-kozlowice-zakret-01",
+    "my_stop_name": "Nowe Kozłowice Zakręt 01"
+  },
+  "2030027:2103229": {
+    "my_stop_id": "filipa-de-girarda-01",
+    "my_stop_name": "Filipa de Girarda 01"
+  },
+  "2030027:2103230": {
+    "my_stop_id": "kacperskiej-01",
+    "my_stop_name": "Kacperskiej 01"
+  },
+  "2029851:2102902": {
+    "my_stop_id": "fieldorfa-nila-02",
+    "my_stop_name": "Fieldorfa Nila 02"
+  },
+  "2451528:2548446": {
+    "my_stop_id": "kacperskiej-01",
+    "my_stop_name": "Kacperskiej 01"
+  },
+  "2029863:2467761": {
+    "my_stop_id": "konarskiego-01",
+    "my_stop_name": "Konarskiego 01"
+  },
+  "2029819:2102847": {
+    "my_stop_id": "kpt-palaca-01",
+    "my_stop_name": "Kpt Pałaca 01"
+  },
+  "2029819:2102848": {
+    "my_stop_id": "filipa-de-girarda-01",
+    "my_stop_name": "Filipa de Girarda 01"
+  },
+  "2387115:2483705": {
+    "my_stop_id": "legionow-polskich-01",
+    "my_stop_name": "Legionów Polskich 01"
+  },
+  "2387115:2548434": {
+    "my_stop_id": "legionow-polskich-02",
+    "my_stop_name": "Legionów Polskich 02"
+  },
+  "2029826:2102861": {
+    "my_stop_id": "limanowskiego-02",
+    "my_stop_name": "Limanowskiego 02"
+  },
+  "2029848:2102896": {
+    "my_stop_id": "szpital-01",
+    "my_stop_name": "Szpital 01"
+  },
+  "2029848:2102897": {
+    "my_stop_id": "szpital-02",
+    "my_stop_name": "Szpital 02"
+  },
+  "2029846:2102894": {
+    "my_stop_id": "mireckiego-dekada-02",
+    "my_stop_name": "Mireckiego Dekada 02"
+  },
+  "2029852:2102904": {
+    "my_stop_id": "nietrzebki-01",
+    "my_stop_name": "Nietrzebki 01"
+  },
+  "2029852:2288416": {
+    "my_stop_id": "nietrzebki-02",
+    "my_stop_name": "Nietrzebki 02"
+  },
+  "2030107:2103357": {
+    "my_stop_id": "okrzei-01",
+    "my_stop_name": "Okrzei 01"
+  },
+  "2030107:2103358": {
+    "my_stop_id": "okrzei-02",
+    "my_stop_name": "Okrzei 02"
+  },
+  "2030106:2103355": {
+    "my_stop_id": "ossowskiego-01",
+    "my_stop_name": "Ossowskiego 01"
+  },
+  "2029849:2102898": {
+    "my_stop_id": "parkingowa-01",
+    "my_stop_name": "Parkingowa 01"
+  },
+  "2029849:2102899": {
+    "my_stop_id": "parkingowa-02",
+    "my_stop_name": "Parkingowa 02"
+  },
+  "2387117:2483707": {
+    "my_stop_id": "parkingowa-garaze-01",
+    "my_stop_name": "Parkingowa Garaże 01"
+  },
+  "2029798:2102813": {
+    "my_stop_id": "partyzantow-pdt-01",
+    "my_stop_name": "Partyzantów PDT 01"
+  },
+  "2029798:2102814": {
+    "my_stop_id": "partyzantow-pdt-02",
+    "my_stop_name": "Partyzantów PDT 02"
+  },
+  "2029850:2102900": {
+    "my_stop_id": "pileckiego-02",
+    "my_stop_name": "Pileckiego 02"
+  },
+  "2029855:2102909": {
+    "my_stop_id": "stare-kozlowice-01",
+    "my_stop_name": "Stare Kozłowice 01"
+  },
+  "2029855:2102910": {
+    "my_stop_id": "radziwillowska-02",
+    "my_stop_name": "Radziwiłłowska 02"
+  },
+  "2030232:2103530": {
+    "my_stop_id": "maczka-01",
+    "my_stop_name": "Maczka 01"
+  },
+  "2030232:2103531": {
+    "my_stop_id": "maczka-02",
+    "my_stop_name": "Maczka 02"
+  },
+  "2029864:2102921": {
+    "my_stop_id": "sikorskiego-01",
+    "my_stop_name": "Sikorskiego 01"
+  },
+  "2029864:2102922": {
+    "my_stop_id": "sikorskiego-02",
+    "my_stop_name": "Sikorskiego 02"
+  },
+  "2387118:2483708": {
+    "my_stop_id": "roosevelta-01",
+    "my_stop_name": "Roosevelta 01"
+  },
+  "2029821:2102851": {
+    "my_stop_id": "skrowaczewskiego-01",
+    "my_stop_name": "Skrowaczewskiego 01"
+  },
+  "2029821:2102852": {
+    "my_stop_id": "skrowaczewskiego-02",
+    "my_stop_name": "Skrowaczewskiego 02"
+  },
+  "2029847:2102895": {
+    "my_stop_id": "sosabowskiego-01",
+    "my_stop_name": "Sosabowskiego 01"
+  },
+  "2029862:2102919": {
+    "my_stop_id": "spokojna-01",
+    "my_stop_name": "Spokojna 01"
+  },
+  "2030104:2103351": {
+    "my_stop_id": "szarych-szeregow-01",
+    "my_stop_name": "Szarych Szeregów 01"
+  },
+  "2030104:2103352": {
+    "my_stop_id": "szarych-szeregow-02",
+    "my_stop_name": "Szarych Szeregów 02"
+  },
+  "2029830:2102867": {
+    "my_stop_id": "bohaterow-warszawy-01",
+    "my_stop_name": "Bohaterów Warszawy 01"
+  },
+  "2029830:2102868": {
+    "my_stop_id": "nowe-kozlowice-01",
+    "my_stop_name": "Nowe Kozłowice 01"
+  },
+  "2029823:2102855": {
+    "my_stop_id": "srodkowa-01",
+    "my_stop_name": "Środkowa 01"
+  },
+  "2029823:2102856": {
+    "my_stop_id": "srodkowa-02",
+    "my_stop_name": "Środkowa 02"
+  },
+  "2029824:2102857": {
+    "my_stop_id": "mireckiego-01",
+    "my_stop_name": "Mireckiego 01"
+  },
+  "2029824:2102858": {
+    "my_stop_id": "mireckiego-02",
+    "my_stop_name": "Mireckiego 02"
+  },
+  "2029822:2102853": {
+    "my_stop_id": "spokojna-01",
+    "my_stop_name": "Spokojna 01"
+  },
+  "2029822:2102854": {
+    "my_stop_id": "parkingowa-garaze-01",
+    "my_stop_name": "Parkingowa Garaże 01"
+  },
+  "2029820:2102849": {
+    "my_stop_id": "wittenberga-01",
+    "my_stop_name": "Wittenberga 01"
+  },
+  "2029820:2102850": {
+    "my_stop_id": "wittenberga-02",
+    "my_stop_name": "Wittenberga 02"
+  },
+  "2029854:2102907": {
+    "my_stop_id": "zus-01",
+    "my_stop_name": "ZUS 01"
+  },
+  "2029854:2102908": {
+    "my_stop_id": "zus-02",
+    "my_stop_name": "ZUS 02"
+  },
+  "2387119:2483709": {
+    "my_stop_id": "zeromskiego-01",
+    "my_stop_name": "Żeromskiego 01"
+  },
+  "2029828:2102864": {
+    "my_stop_id": "krzywa-01",
+    "my_stop_name": "Krzywa 01"
+  },
+  "2029828:2102865": {
+    "my_stop_id": "krzywa-02",
+    "my_stop_name": "Krzywa 02"
+  },
+  "2029827:2102862": {
+    "my_stop_id": "piastowska-01",
+    "my_stop_name": "Piastowska 01"
+  },
+  "2029827:2102863": {
+    "my_stop_id": "piastowska-02",
+    "my_stop_name": "Piastowska 02"
+  },
+  "2029844:2102889": {
+    "my_stop_id": "poznanska-01",
+    "my_stop_name": "Poznańska 01"
+  },
+  "2029844:2102890": {
+    "my_stop_id": "poznanska-02",
+    "my_stop_name": "Poznańska 02"
+  }
+}

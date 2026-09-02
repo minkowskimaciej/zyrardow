@@ -1,0 +1,132 @@
+stop_id,stop_name,stop_lat,stop_lon,location_type,wheelchair_boarding 
+zeromskiego-01,Żeromskiego 01,52.059312,20.414266,0,0
+poznanska-02,Poznańska 02,52.05887,20.416621,0,0
+poznanska-01,Poznańska 01,52.058694,20.417961,0,0
+krzywa-02,Krzywa 02,52.058247,20.419977,0,0
+krzywa-01,Krzywa 01,52.058068,20.421426,0,0
+piastowska-02,Piastowska 02,52.057429,20.424446,0,0
+piastowska-01,Piastowska 01,52.057225,20.425727,0,0
+wittenberga-02,Wittenberga 02,52.055378,20.427531,0,0
+wittenberga-01,Wittenberga 01,52.055773,20.42794,0,0
+szarych-szeregow-01,Szarych Szeregów 01,52.054126,20.426989,0,0
+szarych-szeregow-02,Szarych Szeregów 02,52.053802,20.427178,0,0
+sikorskiego-02,Sikorskiego 02,52.051004,20.429948,0,0
+sikorskiego-01,Sikorskiego 01,52.051079,20.430007,0,0
+roosevelta-01,Roosevelta 01,52.052501,20.428724,0,0
+maczka-01,Maczka 01,52.049707,20.431248,0,0
+maczka-02,Maczka 02,52.048023,20.432502,0,0
+radziwillowska-02,Radziwiłłowska 02,52.048281,20.435545,0,0
+radziwillowska-01,Radziwiłłowska 01,52.049468,20.439132,0,0
+zus-01,ZUS 01,52.050959,20.44276,0,0
+zus-02,ZUS 02,52.050966,20.44296,0,0
+dworzec-pkp-01,Dworzec PKP 01,52.052346,20.447215,0,0
+dworzec-pkp-02,Dworzec PKP 02,52.052364,20.447602,0,0
+dzialki-mlynska-02,Działki Młyńska 02,52.065094,20.406433,0,0
+dzialki-mlynska-01,Działki Młyńska 01,52.065129,20.406834,0,0
+dzialki-osp-02,Działki OSP 02,52.067526,20.39694,0,0
+dzialki-osp-01,Działki OSP 01,52.067665,20.396698,0,0
+dzialki-male-02,Działki Małe 02,52.071399,20.394203,0,0
+dzialki-male-01,Działki Małe 01,52.071201,20.394215,0,0
+wiskitki-folus-01,Wiskitki Folus 01,52.075836,20.392502,0,0
+wiskitki-folus-02,Wiskitki Folus 02,52.076199,20.392405,0,0
+wiskitki-szkola-02,Wiskitki Szkoła 02,52.081093,20.386731,0,0
+wiskitki-szkola-01,Wiskitki Szkoła 01,52.080881,20.386805,0,0
+wiskitki-plac-wolnosci-01,Wiskitki Plac Wolności 01,52.086795,20.383317,0,0
+dzialki-osp-51,Działki OSP 51,52.06621,20.393704,0,0
+wiskitki-szkola-51,Wiskitki Szkoła 51,52.082386,20.38524,0,0
+mostowa-01,Mostowa 01,52.048744,20.422946,0,0
+sosabowskiego-01,Sosabowskiego 01,52.050445,20.426912,0,0
+konarskiego-01,Konarskiego 01,52.052978,20.426615,0,0
+mostowa-02,Mostowa 02,52.051058,20.429443,0,0
+limanowskiego-02,Limanowskiego 02,52.054232,20.429615,0,0
+limanowskiego-01,Limanowskiego 01,52.054978,20.431538,0,0
+dittricha-01,Dittricha 01,52.055842,20.434014,0,0
+armii-krajowej-01,Armii Krajowej 01,52.056759,20.43582,0,0
+szpital-02,Szpital 02,52.05828,20.439747,0,0
+szpital-01,Szpital 01,52.058602,20.440304,0,0
+partyzantow-pdt-01,Partyzantów PDT 01,52.055994,20.44514,0,0
+partyzantow-pdt-02,Partyzantów PDT 02,52.056245,20.444734,0,0
+bohaterow-warszawy-01,Bohaterów Warszawy 01,52.056247,20.454375,0,0
+bohaterow-warszawy-02,Bohaterów Warszawy 02,52.056645,20.453825,0,0
+mireckiego-01,Mireckiego 01,52.059095,20.451246,0,0
+mireckiego-02,Mireckiego 02,52.059123,20.451042,0,0
+srodkowa-01,Środkowa 01,52.06171,20.448303,0,0
+srodkowa-02,Środkowa 02,52.061504,20.448376,0,0
+spokojna-01,Spokojna 01,52.063443,20.446294,0,0
+spokojna-02,Spokojna 02,52.063396,20.446197,0,0
+filipa-de-girarda-02,Filipa de Girarda 02,52.065532,20.444128,0,0
+filipa-de-girarda-01,Filipa de Girarda 01,52.065889,20.443934,0,0
+kpt-palaca-01,Kpt Pałaca 01,52.068013,20.440667,0,0
+kpt-palaca-02,Kpt Pałaca 02,52.06785,20.440507,0,0
+skrowaczewskiego-01,Skrowaczewskiego 01,52.068007,20.434545,0,0
+skrowaczewskiego-02,Skrowaczewskiego 02,52.067721,20.436151,0,0
+spoldzielcza-01,Spółdzielcza 01,52.068771,20.429418,0,0
+spoldzielcza-02,Spółdzielcza 02,52.068616,20.429772,0,0
+nietrzebki-01,Nietrzebki 01,52.072082,20.436106,0,0
+nietrzebki-02,Nietrzebki 02,52.071946,20.436067,0,0
+parkingowa-01,Parkingowa 01,52.072281,20.438609,0,0
+parkingowa-02,Parkingowa 02,52.072232,20.4396,0,0
+parkingowa-garaze-01,Parkingowa Garaże 01,52.070174,20.444727,0,0
+nowe-kozlowice-01,Nowe Kozłowice 01,52.082788,20.433042,0,0
+nowe-kozlowice-zakret-01,Nowe Kozłowice Zakręt 01,52.087212,20.424922,0,0
+stare-kozlowice-01,Stare Kozłowice 01,52.072088,20.419943,0,0
+kacperskiej-01,Kacperskiej 01,52.068679,20.442744,0,0
+zalew-zyrardowski-01,Zalew Żyrardowski 01,52.037133,20.45065,0,0
+1-maja-01,1 Maja 01,52.056525,20.437292,0,0
+mireckiego-dekada-02,Mireckiego Dekada 02,52.054822,20.440253,0,0
+mireckiego-dekada-01,Mireckiego Dekada 01,52.055288,20.441074,0,0
+okrzei-01,Okrzei 01,52.05245,20.43719,0,0
+okrzei-02,Okrzei 02,52.052076,20.436321,0,0
+legionow-polskich-02,Legionów Polskich 02,52.053085,20.431296,0,0
+legionow-polskich-01,Legionów Polskich 01,52.053424,20.431141,0,0
+wyspianskiego-01,Wyspiańskiego 01,52.049502,20.438563,0,0
+mireckiego-szkola-01,Mireckiego Szkoła 01,52.057907,20.447327,0,0
+mireckiego-szkola-02,Mireckiego Szkoła 02,52.057994,20.447882,0,0
+ossowskiego-02,Ossowskiego 02,52.062161,20.443908,0,0
+ossowskiego-01,Ossowskiego 01,52.060933,20.445183,0,0
+warynskiego-02,Waryńskiego 02,52.059488,20.438503,0,0
+warynskiego-01,Waryńskiego 01,52.06002,20.439668,0,0
+jasna-02,Jasna 02,52.060243,20.436453,0,0
+jasna-01,Jasna 01,52.060404,20.436062,0,0
+piekna-02,Piękna 02,52.063436,20.437253,0,0
+piekna-01,Piękna 01,52.064397,20.438749,0,0
+pileckiego-01,Pileckiego 01,52.068216,20.448287,0,0
+pileckiego-02,Pileckiego 02,52.067578,20.448864,0,0
+jaktorowska-02,Jaktorowska 02,52.049471,20.448256,0,0
+jaktorowska-01,Jaktorowska 01,52.049459,20.448567,0,0
+lelewela-01,Lelewela 01,52.05045,20.454165,0,0
+lelewela-02,Lelewela 02,52.050307,20.454519,0,0
+wawelska-02,Wawelska 02,52.051299,20.45819,0,0
+wawelska-01,Wawelska 01,52.051407,20.458827,0,0
+poludniowa-01,Południowa 01,52.053313,20.463827,0,0
+chmielna-02,Chmielna 02,52.054421,20.464684,0,0
+rownolegla-02,Równoległa 02,52.056815,20.467488,0,0
+rownolegla-01,Równoległa 01,52.056825,20.467744,0,0
+miedzyborow-moniuszki-01,Międzyborów Moniuszki 01,52.058909,20.481342,0,0
+miedzyborow-moniuszki-02,Międzyborów Moniuszki 02,52.059188,20.479623,0,0
+fieldorfa-nila-01,Fieldorfa Nila 01,52.066284,20.447344,0,0
+fieldorfa-nila-02,Fieldorfa Nila 02,52.066295,20.447076,0,0
+miedzyborow-01,Międzyborów 01,52.058345,20.485499,0,0
+reymonta-01,Reymonta 01,52.047427,20.442385,0,0
+reymonta-02,Reymonta 02,52.047477,20.442938,0,0
+piotra-skargi-01,Piotra Skargi 01,52.045308,20.438546,0,0
+rolna-01,Rolna 01,52.041678,20.442192,0,0
+opolska-01,Opolska 01,52.043306,20.445402,0,0
+kanalowa-02,Kanałowa 02,52.047664,20.447244,0,0
+skierniewicka-01,Skierniewicka 01,52.046533,20.448218,0,0
+wroclawska-01,Wrocławska 01,52.042239,20.452988,0,0
+wroclawska-02,Wrocławska 02,52.042756,20.452685,0,0
+roszarnicza-01,Roszarnicza 01,52.039493,20.456067,0,0
+roszarnicza-02,Roszarnicza 02,52.040193,20.455495,0,0
+mickiewicza-rod-01,Mickiewicza ROD 01,52.036624,20.45884,0,0
+mickiewicza-rod-02,Mickiewicza ROD 02,52.037035,20.458884,0,0
+korytow-szkola-01,Korytów Szkoła 01,52.029621,20.466744,0,0
+korytow-szkola-02,Korytów Szkoła 02,52.029563,20.467333,0,0
+korytow-osp-01,Korytów OSP 01,52.02472,20.474866,0,0
+korytow-osp-02,Korytów OSP 02,52.025138,20.474525,0,0
+korytow-polna-02,Korytów Polna 02,52.020947,20.480747,0,0
+korytow-polna-01,Korytów Polna 01,52.020634,20.480938,0,0
+korytow-las-01,Korytów Las 01,52.017583,20.487509,0,0
+korytow-02,Korytów 02,52.030573,20.465281,0,0
+korytow-01,Korytów 01,52.030426,20.465287,0,0
+peszkowskiego-01,Peszkowskiego 01,52.063703,20.44229,0,0

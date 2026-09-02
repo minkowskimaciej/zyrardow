@@ -1,0 +1,11 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_color,route_text_color
+0,ZPA,0,Spółdzielcza - Zalew - Żeromskiego,,3,1DD719,000000
+1,ZPA,1,Spółdzielcza - Dworzec PKP,,3,D32F2F,FFFFFF
+2,ZPA,2,Żeromskiego - Nowe Kozłowice - Spółdzielcza,,3,E8734A,000000
+3,ZPA,3,Działki OSP - Parkingowa - Międzyborów,,3,F4D03F,000000
+4,ZPA,4,Wiskitki - Spółdzielcza,,3,00AEEF,000000
+5,ZPA,5,Korytów - Parkingowa - Mostowa,,3,795548,FFFFFF
+7,ZPA,7,Żeromskiego - Parkingowa - Spółdzielcza,,3,F289BD,000000
+8,ZPA,8,Wiskitki - Parkingowa - Spółdzielcza,,3,274BAC,FFFFFF
+9,ZPA,9,Żeromskiego - Dworzec PKP,,3,BB29BB,FFFFFF
+10,ZPA,10,Korytów Las - Parkingowa - Mostowa,,3,008505,FFFFFF
