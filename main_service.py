@@ -99,4 +99,4 @@ while True:
     print(f"[{current_hour}] Zaktualizowano trip_updates.pb ({matched_count} kursow) w {exec_time}s.")
 
     # Czekamy przed kolejnym cyklem
-    time.sleep(30)
+    time.sleep(5)
