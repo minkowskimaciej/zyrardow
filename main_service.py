@@ -1,4 +1,5 @@
 import base64
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import threading
@@ -10,6 +11,21 @@ import pandas as pd
 import requests
 
 app = Flask(__name__)
+
+
+def fetch_stop_departures(args):
+  kp_stop_id, headers = args
+  url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/departures/{kp_stop_id}"
+  try:
+    res = requests.get(url, headers=headers, timeout=2.5)
+    if res.status_code == 200:
+      departures = res.json().get("rows", [])
+      for dep in departures:
+        dep["kp_stop_id"] = kp_stop_id
+      return departures
+  except Exception:
+    pass
+  return []
 
 
 def update_loop():
@@ -53,18 +69,14 @@ def update_loop():
     start_time = time.time()
     all_live_departures = []
 
-    for kp_stop_id in stop_map.keys():
-      url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/departures/{kp_stop_id}"
-      try:
-        res = requests.get(url, headers=headers, timeout=3)
-        if res.status_code == 200:
-          departures = res.json().get("rows", [])
-          for dep in departures:
-            dep["kp_stop_id"] = kp_stop_id
-            all_live_departures.append(dep)
-        time.sleep(0.01)
-      except Exception:
-        continue
+    # Równoległe pobieranie odjazdów (20 wątków naraz)
+    stop_keys = list(stop_map.keys())
+    tasks = [(k, headers) for k in stop_keys]
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+      results = executor.map(fetch_stop_departures, tasks)
+      for res in results:
+        all_live_departures.extend(res)
 
     feed_tu = gtfs_realtime_pb2.FeedMessage()
     feed_tu.header.gtfs_realtime_version = "2.0"
@@ -171,7 +183,7 @@ def update_loop():
           encoded_id = base64.b64encode(str(trip_exec_id).encode()).decode()
           exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded_id}"
           try:
-            exec_res = requests.get(exec_url, headers=headers, timeout=2)
+            exec_res = requests.get(exec_url, headers=headers, timeout=1.5)
             if exec_res.status_code == 200:
               v_data = exec_res.json().get("vehicle", {})
               if "lat" in v_data and "lon" in v_data:
