@@ -14,8 +14,12 @@ app = Flask(__name__)
 
 def update_loop():
   print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
-  with open("stop_map_auto.json", "r", encoding="utf-8") as f:
-    stop_map = json.load(f)
+  try:
+    with open("stop_map_auto.json", "r", encoding="utf-8") as f:
+      stop_map = json.load(f)
+  except Exception as e:
+    print(f"Blad ladowania stop_map_auto.json: {e}", flush=True)
+    stop_map = {}
 
   csv_kwargs = {"dtype": str, "on_bad_lines": "skip", "engine": "python"}
   routes = pd.read_csv("routes.txt", **csv_kwargs)
@@ -25,11 +29,14 @@ def update_loop():
   stop_times["static_time"] = (
       stop_times["departure_time"].str.strip().str.slice(0, 5)
   )
-  my_gtfs = stop_times.merge(trips, on="route_id" if "route_id" in trips else "trip_id", suffixes=('', '_y'))
 
-  # Próba dopasowania połączonej tabeli GTFS
+  if "route_id" in trips.columns and "route_id" in stop_times.columns:
+    my_gtfs = stop_times.merge(trips, on="route_id", suffixes=("", "_y"))
+  else:
+    my_gtfs = stop_times.merge(trips, on="trip_id")
+
   if "route_short_name" not in my_gtfs.columns:
-    my_gtfs = stop_times.merge(trips, on="trip_id").merge(routes, on="route_id")
+    my_gtfs = my_gtfs.merge(routes, on="route_id")
 
   headers = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -135,8 +142,8 @@ def update_loop():
         if trip_exec_id and trip_exec_id not in processed_executions:
           processed_executions.add(trip_exec_id)
 
-          # Bezpośredni URL pobierania bez kodowania (API KiedyPrzyjedzie obsługuje raw ID)
-          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{trip_exec_id}"
+          encoded_exec_id = base64.b64encode(str(trip_exec_id).encode()).decode()
+          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded_exec_id}"
 
           try:
             exec_res = requests.get(exec_url, headers=headers, timeout=2)
@@ -154,6 +161,11 @@ def update_loop():
 
                 vp = entity_vp.vehicle
                 vp.trip.trip_id = my_trip_id
+
+                vehicle_name = vehicle_info.get("name") or vehicle_info.get("id") or str(trip_exec_id)
+                vp.vehicle.id = str(vehicle_name)
+                vp.vehicle.label = str(kp_line)
+
                 vp.position.latitude = float(vehicle_info["lat"])
                 vp.position.longitude = float(vehicle_info["lon"])
                 vp.timestamp = int(datetime.now().timestamp())
