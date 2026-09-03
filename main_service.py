@@ -42,14 +42,16 @@ def fetch_stop_departures(args):
 
 
 def parse_kp_time_to_hm(time_str, now_poland):
-    """Zwraca (hour, minute) na podstawie stringa z API KiedyPrzyjedzie,
-    który bywa w formacie 'HH:MM' (odległe odjazdy) albo 'X min' / '< 1 min' (bliskie)."""
+    """Zwraca (hour, minute) na podstawie stringa z API kiedyPrzyjedzie,
+    który bywa w formacie 'HH:MM' (odległe odjazdy), 'X min' / '< 1 min' (bliskie),
+    albo pusty (autobus aktualnie na przystanku, at_stop=true)."""
     time_str = time_str.strip()
+    if not time_str:
+        # autobus jest teraz na przystanku (at_stop=true, time/static_time = null/brak)
+        return now_poland.hour, now_poland.minute
     if ":" in time_str:
         h, m = time_str.split(":")
         return int(h) % 24, int(m)
-
-    # Format względny: "23 min", "1 min", "< 1 min"
     if time_str.startswith("<"):
         minutes_from_now = 0
     else:
@@ -57,7 +59,6 @@ def parse_kp_time_to_hm(time_str, now_poland):
         if not digits:
             raise ValueError(f"nieznany format czasu: {time_str!r}")
         minutes_from_now = int(digits)
-
     target = now_poland + timedelta(minutes=minutes_from_now)
     return target.hour, target.minute
 
@@ -149,7 +150,7 @@ def update_loop():
         for dep in all_live_departures:
             kp_stop_id = dep.get("kp_stop_id")
             kp_line = str(dep.get("line_name", "")).strip()
-            kp_time = str(dep.get("static_time", "")).strip()
+            kp_time = str(dep.get("static_time", "") or "").strip()
 
             delay_minutes = dep.get("time_diff", 0)
             if delay_minutes is None:
