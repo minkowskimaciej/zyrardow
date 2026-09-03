@@ -40,19 +40,39 @@ def fetch_stop_departures(args):
             for dep in departures:
                 dep["kp_stop_id"] = kp_stop_id
             return departures
-    except Exception as e:
-        # opcjonalny log w razie przekroczenia timeoutu / błędu sieci
+    except Exception:
         pass
     return []
 
 
+def fetch_vehicle_position(trip_execution_id, headers):
+    """Pobiera żywą pozycję pojazdu dla danego trip_execution_id."""
+    encoded = base64.b64encode(trip_execution_id.encode()).decode()
+    url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded}/0"
+    try:
+        res = HTTP_SESSION.get(url, headers=headers, timeout=2.0)
+        if res.status_code == 200:
+            return res.json()
+    except Exception:
+        pass
+    return None
+
+
+def fetch_and_add_vehicle(trip_id, trip_exec_id, headers):
+    """Pobiera pozycję z API i zwraca krotkę (trip_id, vehicle) w przypadku sukcesu."""
+    data = fetch_vehicle_position(trip_exec_id, headers)
+    if not data:
+        return None
+    vehicle = data.get("vehicle")
+    if not vehicle or "lat" not in vehicle or "lon" not in vehicle:
+        return None
+    return (trip_id, vehicle)
+
+
 def parse_kp_time_to_hm(time_str, now_poland):
-    """Zwraca (hour, minute) na podstawie stringa z API kiedyPrzyjedzie,
-    który bywa w formacie 'HH:MM' (odległe odjazdy), 'X min' / '< 1 min' (bliskie),
-    albo pusty (autobus aktualnie na przystanku, at_stop=true)."""
+    """Zwraca (hour, minute) na podstawie stringa z API kiedyPrzyjedzie."""
     time_str = time_str.strip()
     if not time_str:
-        # autobus jest teraz na przystanku (at_stop=true, time/static_time = null/brak)
         return now_poland.hour, now_poland.minute
     if ":" in time_str:
         h, m = time_str.split(":")
@@ -104,7 +124,7 @@ def update_loop():
             line = str(row["route_short_name"]).strip()
             stop = str(row["stop_id"]).strip()
             time_parts = str(row["static_time"]).split(":")
-            
+
             h_raw = int(time_parts[0])
             m = int(time_parts[1])
             total_min = (h_raw % 24) * 60 + m
@@ -137,14 +157,14 @@ def update_loop():
         stop_keys = list(stop_map.keys())
         tasks = [(k, headers) for k in stop_keys]
 
-        # 1. Pobieranie danych z sieci
+        # 1. Pobieranie odjazdów ze słupków
         fetch_start = time.time()
         results = EXECUTOR.map(fetch_stop_departures, tasks)
         for res in results:
             all_live_departures.extend(res)
         fetch_time = round(time.time() - fetch_start, 2)
 
-        # 2. Dopasowywanie i generowanie protobuf
+        # 2. Dopasowywanie opóźnień do GTFS
         match_start = time.time()
 
         feed_tu = gtfs_realtime_pb2.FeedMessage()
@@ -158,12 +178,14 @@ def update_loop():
         feed_vp.header.timestamp = now_ts
 
         updates_by_trip = defaultdict(list)
+        trip_execution_by_trip = {}
         matched_count = 0
 
         for dep in all_live_departures:
             kp_stop_id = dep.get("kp_stop_id")
             kp_line = str(dep.get("line_name", "")).strip()
             kp_time = str(dep.get("static_time", "") or "").strip()
+            kp_trip_exec_id = str(dep.get("trip_execution_id", "")).strip()
 
             delay_minutes = dep.get("time_diff", 0)
             if delay_minutes is None:
@@ -213,11 +235,15 @@ def update_loop():
                     "estimated_time": estimated_timestamp
                 })
 
+                if kp_trip_exec_id:
+                    trip_execution_by_trip[my_trip_id] = kp_trip_exec_id
+
                 matched_count += 1
             except Exception as e:
                 print(f"[SKIP] {kp_line} o czasie {kp_time!r}: {e}", flush=True)
                 continue
 
+        # Generowanie treści FeedMessage TripUpdates
         for trip_id, stop_updates in updates_by_trip.items():
             entity_tu = feed_tu.entity.add()
             entity_tu.id = f"tu_{trip_id}"
@@ -237,19 +263,43 @@ def update_loop():
                 stu.departure.delay = update["delay"]
                 stu.departure.time = update["estimated_time"]
 
+        match_time = round(time.time() - match_start, 2)
+
+        # 3. Pobieranie pozycji pojazdów dla dopasowanych kursów
+        vp_start = time.time()
+        vp_tasks = [(tid, eid, headers) for tid, eid in trip_execution_by_trip.items()]
+        vp_results = EXECUTOR.map(lambda args: fetch_and_add_vehicle(*args), vp_tasks)
+
+        vp_count = 0
+        for result in vp_results:
+            if result is None:
+                continue
+            trip_id, vehicle = result
+            entity_vp = feed_vp.entity.add()
+            entity_vp.id = f"vp_{trip_id}"
+
+            vp = entity_vp.vehicle
+            vp.trip.trip_id = trip_id
+            vp.position.latitude = float(vehicle["lat"])
+            vp.position.longitude = float(vehicle["lon"])
+            vp.timestamp = now_ts
+            vp_count += 1
+
+        vp_time = round(time.time() - vp_start, 2)
+
+        # Zapis do plików binarnych PB
         with open("trip_updates.pb", "wb") as f:
             f.write(feed_tu.SerializeToString())
 
         with open("vehicle_positions.pb", "wb") as f:
             f.write(feed_vp.SerializeToString())
 
-        match_time = round(time.time() - match_start, 2)
         exec_time = round(time.time() - start_time, 2)
         current_hour = datetime.now(tz_poland).strftime("%H:%M:%S")
 
         print(
-            f"[{current_hour}] GTFS-RT updated ({len(updates_by_trip)} trips, {matched_count} stops) "
-            f"| Total: {exec_time}s (fetch={fetch_time}s, match={match_time}s)",
+            f"[{current_hour}] GTFS-RT updated ({len(updates_by_trip)} trips, {matched_count} stops, {vp_count} vehicles) "
+            f"| Total: {exec_time}s (fetch={fetch_time}s, match={match_time}s, vp={vp_time}s)",
             flush=True,
         )
 
