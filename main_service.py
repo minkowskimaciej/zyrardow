@@ -305,7 +305,7 @@ def update_loop():
             flush=True,
         )
 
-        time.sleep(3)
+        time.sleep(2)
 
 
 def send_file_no_cache(filename):
