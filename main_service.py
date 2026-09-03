@@ -138,52 +138,56 @@ def update_loop():
         stu.stop_sequence = my_stop_sequence
         stu.departure.delay = delay_seconds
 
-        # --- VehiclePosition ---
-        if trip_exec_id and trip_exec_id not in processed_executions:
-          processed_executions.add(trip_exec_id)
-
-          urls_to_try = [
-              f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{trip_exec_id}",
-              f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{base64.b64encode(str(trip_exec_id).encode()).decode()}",
-          ]
-
-          for exec_url in urls_to_try:
-            try:
-              exec_res = requests.get(exec_url, headers=headers, timeout=2)
-              if exec_res.status_code == 200:
-                exec_data = exec_res.json()
-                vehicle_info = exec_data.get("vehicle")
-
-                if (
-                    vehicle_info
-                    and "lat" in vehicle_info
-                    and "lon" in vehicle_info
-                ):
-                  entity_vp = feed_vp.entity.add()
-                  entity_vp.id = f"vp_{my_trip_id}"
-
-                  vp = entity_vp.vehicle
-                  vp.trip.trip_id = my_trip_id
-
-                  veh_id = (
-                      vehicle_info.get("id")
-                      or vehicle_info.get("name")
-                      or str(trip_exec_id)
-                  )
-                  vp.vehicle.id = str(veh_id)
-                  vp.vehicle.label = str(kp_line)
-
-                  vp.position.latitude = float(vehicle_info["lat"])
-                  vp.position.longitude = float(vehicle_info["lon"])
-                  vp.timestamp = int(datetime.now().timestamp())
-                  break
-            except Exception:
-              pass
-
         matched_count += 1
 
       except Exception:
         continue
+
+      # --- VehiclePosition ---
+      if trip_exec_id and trip_exec_id not in processed_executions:
+        processed_executions.add(trip_exec_id)
+
+        lat = dep.get("lat") or dep.get("latitude")
+        lon = dep.get("lon") or dep.get("longitude")
+        veh_obj = dep.get("vehicle", {})
+
+        if not lat and isinstance(veh_obj, dict):
+          lat = veh_obj.get("lat")
+          lon = veh_obj.get("lon")
+
+        if lat and lon:
+          entity_vp = feed_vp.entity.add()
+          entity_vp.id = f"vp_{my_trip_id}"
+          vp = entity_vp.vehicle
+          vp.trip.trip_id = my_trip_id
+          vp.vehicle.id = str(
+              veh_obj.get("id") or veh_obj.get("name") or trip_exec_id
+          )
+          vp.vehicle.label = str(kp_line)
+          vp.position.latitude = float(lat)
+          vp.position.longitude = float(lon)
+          vp.timestamp = int(datetime.now().timestamp())
+        else:
+          encoded_id = base64.b64encode(str(trip_exec_id).encode()).decode()
+          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded_id}"
+          try:
+            exec_res = requests.get(exec_url, headers=headers, timeout=2)
+            if exec_res.status_code == 200:
+              v_data = exec_res.json().get("vehicle", {})
+              if "lat" in v_data and "lon" in v_data:
+                entity_vp = feed_vp.entity.add()
+                entity_vp.id = f"vp_{my_trip_id}"
+                vp = entity_vp.vehicle
+                vp.trip.trip_id = my_trip_id
+                vp.vehicle.id = str(
+                    v_data.get("id") or v_data.get("name") or trip_exec_id
+                )
+                vp.vehicle.label = str(kp_line)
+                vp.position.latitude = float(v_data["lat"])
+                vp.position.longitude = float(v_data["lon"])
+                vp.timestamp = int(datetime.now().timestamp())
+          except Exception:
+            pass
 
     with open("trip_updates.pb", "wb") as f:
       f.write(feed_tu.SerializeToString())
