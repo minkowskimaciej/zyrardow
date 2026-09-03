@@ -5,7 +5,8 @@ import json
 import os
 import threading
 import time
-from datetime import datetime, date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from flask import Flask, send_file
 from google.transit import gtfs_realtime_pb2
 import pandas as pd
@@ -15,6 +16,7 @@ app = Flask(__name__)
 
 
 def create_empty_pb(filename):
+    """Tworzy pusty plik PB na starcie, eliminuje błędy 404."""
     feed = gtfs_realtime_pb2.FeedMessage()
     feed.header.gtfs_realtime_version = "2.0"
     feed.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -91,12 +93,14 @@ def update_loop():
         "Accept": "application/json",
     }
 
-    print("Serwis wystartowal! Tworzenie poprawnego feedu GTFS-RT...\n", flush=True)
+    tz_poland = ZoneInfo("Europe/Warsaw")
+
+    print("Serwis wystartowal! Strefa Europe/Warsaw aktywna...\n", flush=True)
 
     while True:
         start_time = time.time()
-        now_ts = int(start_time)
-        today = datetime.now()
+        now_poland = datetime.now(tz_poland)
+        now_ts = int(now_poland.timestamp())
 
         all_live_departures = []
         stop_keys = list(stop_map.keys())
@@ -157,10 +161,11 @@ def update_loop():
                 my_trip_id = best_match["trip_id"]
                 my_stop_sequence = best_match["stop_sequence"]
 
-                # Wyliczenie dokładnego timestampu odjazdu rozkładowego + opóźnienie
+                # Konstrukcja daty i godziny stempla w strefie polskiej (UTC+2)
                 sched_dt = datetime(
-                    today.year, today.month, today.day,
-                    best_match["hour"] % 24, best_match["minute"]
+                    now_poland.year, now_poland.month, now_poland.day,
+                    best_match["hour"] % 24, best_match["minute"],
+                    tzinfo=tz_poland
                 )
                 scheduled_timestamp = int(sched_dt.timestamp())
                 estimated_timestamp = scheduled_timestamp + delay_seconds
@@ -176,7 +181,7 @@ def update_loop():
             except Exception:
                 continue
 
-        # Generowanie unikalnych obiektów TripUpdate
+        # Tworzenie wyjścia GTFS-RT bez powielania encji trip_id
         for trip_id, stop_updates in updates_by_trip.items():
             entity_tu = feed_tu.entity.add()
             entity_tu.id = f"tu_{trip_id}"
@@ -190,7 +195,6 @@ def update_loop():
                 stu.stop_id = update["stop_id"]
                 stu.stop_sequence = update["stop_sequence"]
                 
-                # Zapisujemy zarówno delay, jak i bezwzględny znacznik czasu (time)
                 stu.arrival.delay = update["delay"]
                 stu.arrival.time = update["estimated_time"]
                 
@@ -204,7 +208,7 @@ def update_loop():
             f.write(feed_vp.SerializeToString())
 
         exec_time = round(time.time() - start_time, 2)
-        current_hour = datetime.now().strftime("%H:%M:%S")
+        current_hour = datetime.now(tz_poland).strftime("%H:%M:%S")
         print(
             f"[{current_hour}] Zaktualizowano GTFS-RT ({len(updates_by_trip)} unikalnych kursow,"
             f" {matched_count} przystankow) w {exec_time}s.",
