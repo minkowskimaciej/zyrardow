@@ -229,7 +229,13 @@ def update_loop():
                     tzinfo=tz_poland
                 )
                 scheduled_timestamp = int(sched_dt.timestamp())
-                estimated_timestamp = scheduled_timestamp + delay_seconds
+
+                # ZASADA 15 MINUT: Resetowanie do rozkładu przy opóźnieniu > 15 min (900 s)
+                if abs(delay_seconds) > 900:
+                    delay_seconds = 0
+                    estimated_timestamp = scheduled_timestamp
+                else:
+                    estimated_timestamp = scheduled_timestamp + delay_seconds
 
                 updates_by_trip[my_trip_id].append({
                     "stop_id": my_stop_id,
