@@ -5,7 +5,7 @@ import json
 import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, date
 from flask import Flask, send_file
 from google.transit import gtfs_realtime_pb2
 import pandas as pd
@@ -15,7 +15,6 @@ app = Flask(__name__)
 
 
 def create_empty_pb(filename):
-    """Tworzy pusty plik PB na starcie, eliminuje błędy 404."""
     feed = gtfs_realtime_pb2.FeedMessage()
     feed.header.gtfs_realtime_version = "2.0"
     feed.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -80,7 +79,9 @@ def update_loop():
             gtfs_index[(line, stop)].append({
                 "trip_id": str(row["trip_id"]),
                 "stop_sequence": int(row["stop_sequence"]),
-                "total_min": total_min
+                "total_min": total_min,
+                "hour": int(time_parts[0]),
+                "minute": int(time_parts[1])
             })
         except Exception:
             continue
@@ -90,12 +91,14 @@ def update_loop():
         "Accept": "application/json",
     }
 
-    print("Serwis wystartowal! Generowanie poprawnych pakietow trip_updates.pb...\n", flush=True)
+    print("Serwis wystartowal! Tworzenie poprawnego feedu GTFS-RT...\n", flush=True)
 
     while True:
         start_time = time.time()
-        all_live_departures = []
+        now_ts = int(start_time)
+        today = datetime.now()
 
+        all_live_departures = []
         stop_keys = list(stop_map.keys())
         tasks = [(k, headers) for k in stop_keys]
 
@@ -107,12 +110,12 @@ def update_loop():
         feed_tu = gtfs_realtime_pb2.FeedMessage()
         feed_tu.header.gtfs_realtime_version = "2.0"
         feed_tu.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
-        feed_tu.header.timestamp = int(datetime.now().timestamp())
+        feed_tu.header.timestamp = now_ts
 
         feed_vp = gtfs_realtime_pb2.FeedMessage()
         feed_vp.header.gtfs_realtime_version = "2.0"
         feed_vp.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
-        feed_vp.header.timestamp = int(datetime.now().timestamp())
+        feed_vp.header.timestamp = now_ts
 
         updates_by_trip = defaultdict(list)
         matched_count = 0
@@ -154,20 +157,30 @@ def update_loop():
                 my_trip_id = best_match["trip_id"]
                 my_stop_sequence = best_match["stop_sequence"]
 
+                # Wyliczenie dokładnego timestampu odjazdu rozkładowego + opóźnienie
+                sched_dt = datetime(
+                    today.year, today.month, today.day,
+                    best_match["hour"] % 24, best_match["minute"]
+                )
+                scheduled_timestamp = int(sched_dt.timestamp())
+                estimated_timestamp = scheduled_timestamp + delay_seconds
+
                 updates_by_trip[my_trip_id].append({
                     "stop_id": my_stop_id,
                     "stop_sequence": my_stop_sequence,
-                    "delay": delay_seconds
+                    "delay": delay_seconds,
+                    "estimated_time": estimated_timestamp
                 })
 
                 matched_count += 1
             except Exception:
                 continue
 
-        # Generowanie unikalnych encji TripUpdate (pogrupowanych po trip_id)
+        # Generowanie unikalnych obiektów TripUpdate
         for trip_id, stop_updates in updates_by_trip.items():
             entity_tu = feed_tu.entity.add()
             entity_tu.id = f"tu_{trip_id}"
+            
             trip_update = entity_tu.trip_update
             trip_update.trip.trip_id = trip_id
             trip_update.trip.schedule_relationship = gtfs_realtime_pb2.TripDescriptor.SCHEDULED
@@ -176,8 +189,13 @@ def update_loop():
                 stu = trip_update.stop_time_update.add()
                 stu.stop_id = update["stop_id"]
                 stu.stop_sequence = update["stop_sequence"]
-                stu.departure.delay = update["delay"]
+                
+                # Zapisujemy zarówno delay, jak i bezwzględny znacznik czasu (time)
                 stu.arrival.delay = update["delay"]
+                stu.arrival.time = update["estimated_time"]
+                
+                stu.departure.delay = update["delay"]
+                stu.departure.time = update["estimated_time"]
 
         with open("trip_updates.pb", "wb") as f:
             f.write(feed_tu.SerializeToString())
