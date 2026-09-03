@@ -14,7 +14,6 @@ app = Flask(__name__)
 
 
 def create_empty_pb(filename):
-  """Inicjalizuje puste pliki Protobuf na starcie, eliminując błędy 404 zanim pętla przeliczy dane."""
   feed = gtfs_realtime_pb2.FeedMessage()
   feed.header.gtfs_realtime_version = "2.0"
   feed.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -41,7 +40,6 @@ def fetch_stop_departures(args):
 def update_loop():
   print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
 
-  # Tworzenie plików natychmiast na starcie procesu
   create_empty_pb("trip_updates.pb")
   create_empty_pb("vehicle_positions.pb")
 
@@ -74,21 +72,17 @@ def update_loop():
       "Accept": "application/json",
   }
 
-  print(
-      "Serwis wystartowal! Tworzenie trip_updates.pb oraz"
-      " vehicle_positions.pb...\n",
-      flush=True,
-  )
+  print("Serwis wystartowal! Tworzenie trip_updates.pb oraz vehicle_positions.pb...\n", flush=True)
 
   while True:
     start_time = time.time()
     all_live_departures = []
 
-    # Pobieranie wielowątkowe (15 wątków równolegle)
     stop_keys = list(stop_map.keys())
     tasks = [(k, headers) for k in stop_keys]
 
-    with ThreadPoolExecutor(max_workers=15) as executor:
+    # Zwiększono do 40 wątków — obniży czas z ~43s do kilku sekund
+    with ThreadPoolExecutor(max_workers=40) as executor:
       results = executor.map(fetch_stop_departures, tasks)
       for res in results:
         all_live_departures.extend(res)
@@ -174,28 +168,34 @@ def update_loop():
       if trip_exec_id and trip_exec_id not in processed_executions:
         processed_executions.add(trip_exec_id)
 
+        # Przeglądanie struktury pod kątem pozycji GPS
         lat = dep.get("lat") or dep.get("latitude")
-        lon = dep.get("lon") or dep.get("longitude")
-        veh_obj = dep.get("vehicle", {})
+        lon = dep.get("lon") or dep.get("longitude") or dep.get("lng")
+        
+        veh_obj = dep.get("vehicle") or dep.get("execution") or {}
 
         if not lat and isinstance(veh_obj, dict):
-          lat = veh_obj.get("lat")
-          lon = veh_obj.get("lon")
+          lat = veh_obj.get("lat") or veh_obj.get("latitude")
+          lon = veh_obj.get("lon") or veh_obj.get("longitude") or veh_obj.get("lng")
 
         if lat and lon:
-          entity_vp = feed_vp.entity.add()
-          entity_vp.id = f"vp_{my_trip_id}"
-          vp = entity_vp.vehicle
-          vp.trip.trip_id = my_trip_id
-          vp.vehicle.id = str(
-              veh_obj.get("id") or veh_obj.get("name") or trip_exec_id
-          )
-          vp.vehicle.label = str(kp_line)
-          vp.position.latitude = float(lat)
-          vp.position.longitude = float(lon)
-          vp.timestamp = int(datetime.now().timestamp())
+          try:
+            entity_vp = feed_vp.entity.add()
+            entity_vp.id = f"vp_{my_trip_id}"
+            vp = entity_vp.vehicle
+            vp.trip.trip_id = my_trip_id
+            vp.vehicle.id = str(
+                (veh_obj.get("id") if isinstance(veh_obj, dict) else None)
+                or (veh_obj.get("name") if isinstance(veh_obj, dict) else None)
+                or trip_exec_id
+            )
+            vp.vehicle.label = str(kp_line)
+            vp.position.latitude = float(lat)
+            vp.position.longitude = float(lon)
+            vp.timestamp = int(datetime.now().timestamp())
+          except Exception:
+            pass
 
-    # Zapis na dysk
     with open("trip_updates.pb", "wb") as f:
       f.write(feed_tu.SerializeToString())
 
@@ -210,7 +210,7 @@ def update_loop():
         flush=True,
     )
 
-    time.sleep(3)
+    time.sleep(2)
 
 
 @app.route("/trip_updates.pb")
