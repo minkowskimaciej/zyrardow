@@ -55,7 +55,6 @@ def update_loop():
       except Exception:
         continue
 
-    # Inicjalizacja dwóch struktur GTFS-Realtime
     feed_tu = gtfs_realtime_pb2.FeedMessage()
     feed_tu.header.gtfs_realtime_version = "2.0"
     feed_tu.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -75,7 +74,9 @@ def update_loop():
       kp_time = str(dep.get("static_time", "")).strip()
       delay_minutes = dep.get("time_diff", 0)
       delay_seconds = int(delay_minutes * 60)
-      trip_exec_id = dep.get("trip_execution_id") or dep.get("id")
+
+      trip_exec_id = dep.get("trip_execution_id")
+      trip_index = dep.get("trip_index")
 
       if kp_stop_id not in stop_map:
         continue
@@ -113,7 +114,7 @@ def update_loop():
         my_trip_id = best_match["trip_id"]
         my_stop_sequence = int(best_match["stop_sequence"])
 
-        # --- TripUpdate (opóźnienia) ---
+        # --- TripUpdate ---
         entity_tu = feed_tu.entity.add()
         entity_tu.id = f"tu_{my_trip_id}"
         trip_update = entity_tu.trip_update
@@ -127,15 +128,19 @@ def update_loop():
         stu.stop_sequence = my_stop_sequence
         stu.departure.delay = delay_seconds
 
-        # --- VehiclePosition (Pozycja GPS) ---
-        if trip_exec_id and trip_exec_id not in processed_executions:
+        # --- VehiclePosition ---
+        if (
+            trip_exec_id
+            and trip_index is not None
+            and trip_exec_id not in processed_executions
+        ):
           processed_executions.add(trip_exec_id)
 
-          # Zakodowanie trip_execution_id do formatu Base64
-          encoded_id = base64.b64encode(str(trip_exec_id).encode("utf-8")).decode(
-              "utf-8"
-          )
-          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded_id}"
+          # Zakodowanie trip_execution_id do Base64
+          raw_bytes = str(trip_exec_id).encode("utf-8")
+          b64_id = base64.b64encode(raw_bytes).decode("utf-8")
+
+          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{b64_id}/{trip_index}"
 
           try:
             exec_res = requests.get(exec_url, headers=headers, timeout=2)
@@ -164,7 +169,6 @@ def update_loop():
       except Exception:
         continue
 
-    # Zapis dwóch plików .pb
     with open("trip_updates.pb", "wb") as f:
       f.write(feed_tu.SerializeToString())
 
