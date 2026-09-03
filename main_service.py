@@ -14,7 +14,6 @@ import requests
 
 app = Flask(__name__)
 
-# Globalna sesja HTTP ze zwiększoną pulą połączeń oraz trwała pula wątków
 HTTP_SESSION = requests.Session()
 adapter = requests.adapters.HTTPAdapter(pool_connections=50, pool_maxsize=50)
 HTTP_SESSION.mount("https://", adapter)
@@ -57,10 +56,8 @@ def fetch_vehicle_position(trip_execution_id, headers):
         res = HTTP_SESSION.get(url, headers=headers, timeout=2.0)
         if res.status_code == 200:
             return res.json()
-        else:
-            print(f"[VP-DEBUG] status={res.status_code} dla {trip_execution_id}", flush=True)
-    except Exception as e:
-        print(f"[VP-DEBUG] blad dla {trip_execution_id}: {e}", flush=True)
+    except Exception:
+        pass
     return None
 
 
@@ -71,7 +68,6 @@ def fetch_and_add_vehicle(trip_id, trip_exec_id, headers):
         return None
     vehicle = data.get("vehicle")
     if not vehicle or "lat" not in vehicle or "lon" not in vehicle:
-        print(f"[VP-DEBUG] brak vehicle w odpowiedzi dla {trip_exec_id}: {data.get('vehicle')}", flush=True)
         return None
     return (trip_id, vehicle)
 
@@ -246,8 +242,7 @@ def update_loop():
                     trip_execution_by_trip[my_trip_id] = kp_trip_exec_id
 
                 matched_count += 1
-            except Exception as e:
-                print(f"[SKIP] {kp_line} o czasie {kp_time!r}: {e}", flush=True)
+            except Exception:
                 continue
 
         # Generowanie treści FeedMessage TripUpdates
