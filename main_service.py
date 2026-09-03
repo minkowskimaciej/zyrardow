@@ -39,6 +39,30 @@ def fetch_stop_departures(args):
     return []
 
 
+def fetch_vehicle_positions_kp(headers):
+    """Próbuje pobrać pozycje pojazdów z typowych endpointów mapy KP."""
+    urls = [
+        "https://pksgostynin.kiedyprzyjedzie.pl/api/realtime/map",
+        "https://pksgostynin.kiedyprzyjedzie.pl/api/map_items",
+        "https://pksgostynin.kiedyprzyjedzie.pl/api/vehicles",
+        "https://pksgostynin.kiedyprzyjedzie.pl/api/realtime/vehicles"
+    ]
+    
+    for url in urls:
+        try:
+            res = requests.get(url, headers=headers, timeout=2.5)
+            if res.status_code == 200:
+                data = res.json()
+                if isinstance(data, dict):
+                    # Często obiekty są w kluczach 'vehicles', 'items' lub 'rows'
+                    return data.get("vehicles") or data.get("items") or data.get("rows") or []
+                elif isinstance(data, list):
+                    return data
+        except Exception:
+            continue
+    return []
+
+
 def update_loop():
     print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
 
@@ -69,7 +93,6 @@ def update_loop():
     if "route_short_name" not in my_gtfs.columns:
         my_gtfs = my_gtfs.merge(routes, on="route_id")
 
-    # Szybki indeks słownikowy O(1)
     gtfs_index = defaultdict(list)
     for _, row in my_gtfs.iterrows():
         try:
@@ -93,8 +116,6 @@ def update_loop():
 
     print("Serwis wystartowal! Tworzenie trip_updates.pb oraz vehicle_positions.pb...\n", flush=True)
 
-    debug_printed = False
-
     while True:
         start_time = time.time()
         all_live_departures = []
@@ -107,22 +128,6 @@ def update_loop():
             for res in results:
                 all_live_departures.extend(res)
 
-        # Jednorazowy podgląd struktury JSON w logach
-        if not debug_printed and all_live_departures:
-            print("\n--- PRZYKŁADOWY OBIEKT ODJAZDU (DEBUG) ---", flush=True)
-            print(json.dumps(all_live_departures[0], indent=2, ensure_ascii=False), flush=True)
-            print("-------------------------------------------\n", flush=True)
-            
-            try:
-                m_res = requests.get("https://pksgostynin.kiedyprzyjedzie.pl/api/map", headers=headers, timeout=2.0)
-                print(f"Status /api/map: {m_res.status_code}", flush=True)
-                if m_res.status_code == 200:
-                    print("Przykładowe dane z /api/map:", str(m_res.json())[:300], flush=True)
-            except Exception as e:
-                print(f"Blad /api/map: {e}", flush=True)
-
-            debug_printed = True
-
         feed_tu = gtfs_realtime_pb2.FeedMessage()
         feed_tu.header.gtfs_realtime_version = "2.0"
         feed_tu.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -134,6 +139,7 @@ def update_loop():
         feed_vp.header.timestamp = int(datetime.now().timestamp())
 
         matched_count = 0
+        active_trips_by_line = {}
 
         for dep in all_live_departures:
             kp_stop_id = dep.get("kp_stop_id")
@@ -181,8 +187,34 @@ def update_loop():
                 stu.departure.delay = delay_seconds
 
                 matched_count += 1
+                active_trips_by_line[kp_line] = my_trip_id
+
             except Exception:
                 continue
+
+        # Pobieranie pozycji pojazdów z dedykowanego endpointu mapy
+        raw_vehicles = fetch_vehicle_positions_kp(headers)
+        for idx, veh in enumerate(raw_vehicles):
+            lat = veh.get("lat") or veh.get("latitude") or veh.get("y")
+            lon = veh.get("lon") or veh.get("longitude") or veh.get("x") or veh.get("lng")
+            line_name = str(veh.get("line_name") or veh.get("line") or "").strip()
+
+            if lat and lon:
+                try:
+                    entity_vp = feed_vp.entity.add()
+                    entity_vp.id = f"vp_{veh.get('id', idx)}"
+                    vp = entity_vp.vehicle
+                    
+                    if line_name in active_trips_by_line:
+                        vp.trip.trip_id = active_trips_by_line[line_name]
+                    
+                    vp.vehicle.id = str(veh.get("id") or veh.get("side_number") or f"bus_{idx}")
+                    vp.vehicle.label = line_name
+                    vp.position.latitude = float(lat)
+                    vp.position.longitude = float(lon)
+                    vp.timestamp = int(datetime.now().timestamp())
+                except Exception:
+                    pass
 
         with open("trip_updates.pb", "wb") as f:
             f.write(feed_tu.SerializeToString())
