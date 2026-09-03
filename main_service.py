@@ -99,14 +99,17 @@ def update_loop():
             line = str(row["route_short_name"]).strip()
             stop = str(row["stop_id"]).strip()
             time_parts = str(row["static_time"]).split(":")
-            total_min = int(time_parts[0]) * 60 + int(time_parts[1])
+            
+            h_raw = int(time_parts[0])
+            m = int(time_parts[1])
+            total_min = (h_raw % 24) * 60 + m
 
             gtfs_index[(line, stop)].append({
                 "trip_id": str(row["trip_id"]),
                 "stop_sequence": int(row["stop_sequence"]),
                 "total_min": total_min,
-                "hour": int(time_parts[0]),
-                "minute": int(time_parts[1])
+                "hour": h_raw,
+                "minute": m
             })
         except Exception:
             continue
@@ -173,7 +176,8 @@ def update_loop():
                 min_diff = 999
 
                 for cand in candidates:
-                    diff = abs(cand["total_min"] - kp_total_minutes)
+                    raw_diff = abs(cand["total_min"] - kp_total_minutes)
+                    diff = min(raw_diff, 1440 - raw_diff)
                     if diff <= 30 and diff < min_diff:
                         min_diff = diff
                         best_match = cand
