@@ -39,30 +39,6 @@ def fetch_stop_departures(args):
     return []
 
 
-def fetch_vehicle_positions_kp(headers):
-    """Próbuje pobrać pozycje pojazdów z typowych endpointów mapy KP."""
-    urls = [
-        "https://pksgostynin.kiedyprzyjedzie.pl/api/realtime/map",
-        "https://pksgostynin.kiedyprzyjedzie.pl/api/map_items",
-        "https://pksgostynin.kiedyprzyjedzie.pl/api/vehicles",
-        "https://pksgostynin.kiedyprzyjedzie.pl/api/realtime/vehicles"
-    ]
-    
-    for url in urls:
-        try:
-            res = requests.get(url, headers=headers, timeout=2.5)
-            if res.status_code == 200:
-                data = res.json()
-                if isinstance(data, dict):
-                    # Często obiekty są w kluczach 'vehicles', 'items' lub 'rows'
-                    return data.get("vehicles") or data.get("items") or data.get("rows") or []
-                elif isinstance(data, list):
-                    return data
-        except Exception:
-            continue
-    return []
-
-
 def update_loop():
     print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
 
@@ -114,7 +90,7 @@ def update_loop():
         "Accept": "application/json",
     }
 
-    print("Serwis wystartowal! Tworzenie trip_updates.pb oraz vehicle_positions.pb...\n", flush=True)
+    print("Serwis wystartowal! Generowanie poprawnych pakietow trip_updates.pb...\n", flush=True)
 
     while True:
         start_time = time.time()
@@ -138,14 +114,17 @@ def update_loop():
         feed_vp.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
         feed_vp.header.timestamp = int(datetime.now().timestamp())
 
+        updates_by_trip = defaultdict(list)
         matched_count = 0
-        active_trips_by_line = {}
 
         for dep in all_live_departures:
             kp_stop_id = dep.get("kp_stop_id")
             kp_line = str(dep.get("line_name", "")).strip()
             kp_time = str(dep.get("static_time", "")).strip()
+            
             delay_minutes = dep.get("time_diff", 0)
+            if delay_minutes is None:
+                delay_minutes = 0
             delay_seconds = int(delay_minutes * 60)
 
             if kp_stop_id not in stop_map:
@@ -175,46 +154,30 @@ def update_loop():
                 my_trip_id = best_match["trip_id"]
                 my_stop_sequence = best_match["stop_sequence"]
 
-                entity_tu = feed_tu.entity.add()
-                entity_tu.id = f"tu_{my_trip_id}"
-                trip_update = entity_tu.trip_update
-                trip_update.trip.trip_id = my_trip_id
-                trip_update.trip.schedule_relationship = gtfs_realtime_pb2.TripDescriptor.SCHEDULED
-
-                stu = trip_update.stop_time_update.add()
-                stu.stop_id = my_stop_id
-                stu.stop_sequence = my_stop_sequence
-                stu.departure.delay = delay_seconds
+                updates_by_trip[my_trip_id].append({
+                    "stop_id": my_stop_id,
+                    "stop_sequence": my_stop_sequence,
+                    "delay": delay_seconds
+                })
 
                 matched_count += 1
-                active_trips_by_line[kp_line] = my_trip_id
-
             except Exception:
                 continue
 
-        # Pobieranie pozycji pojazdów z dedykowanego endpointu mapy
-        raw_vehicles = fetch_vehicle_positions_kp(headers)
-        for idx, veh in enumerate(raw_vehicles):
-            lat = veh.get("lat") or veh.get("latitude") or veh.get("y")
-            lon = veh.get("lon") or veh.get("longitude") or veh.get("x") or veh.get("lng")
-            line_name = str(veh.get("line_name") or veh.get("line") or "").strip()
+        # Generowanie unikalnych encji TripUpdate (pogrupowanych po trip_id)
+        for trip_id, stop_updates in updates_by_trip.items():
+            entity_tu = feed_tu.entity.add()
+            entity_tu.id = f"tu_{trip_id}"
+            trip_update = entity_tu.trip_update
+            trip_update.trip.trip_id = trip_id
+            trip_update.trip.schedule_relationship = gtfs_realtime_pb2.TripDescriptor.SCHEDULED
 
-            if lat and lon:
-                try:
-                    entity_vp = feed_vp.entity.add()
-                    entity_vp.id = f"vp_{veh.get('id', idx)}"
-                    vp = entity_vp.vehicle
-                    
-                    if line_name in active_trips_by_line:
-                        vp.trip.trip_id = active_trips_by_line[line_name]
-                    
-                    vp.vehicle.id = str(veh.get("id") or veh.get("side_number") or f"bus_{idx}")
-                    vp.vehicle.label = line_name
-                    vp.position.latitude = float(lat)
-                    vp.position.longitude = float(lon)
-                    vp.timestamp = int(datetime.now().timestamp())
-                except Exception:
-                    pass
+            for update in stop_updates:
+                stu = trip_update.stop_time_update.add()
+                stu.stop_id = update["stop_id"]
+                stu.stop_sequence = update["stop_sequence"]
+                stu.departure.delay = update["delay"]
+                stu.arrival.delay = update["delay"]
 
         with open("trip_updates.pb", "wb") as f:
             f.write(feed_tu.SerializeToString())
@@ -225,8 +188,8 @@ def update_loop():
         exec_time = round(time.time() - start_time, 2)
         current_hour = datetime.now().strftime("%H:%M:%S")
         print(
-            f"[{current_hour}] Zaktualizowano GTFS-RT ({matched_count} kursow,"
-            f" {len(feed_vp.entity)} pozycji GPS) w {exec_time}s.",
+            f"[{current_hour}] Zaktualizowano GTFS-RT ({len(updates_by_trip)} unikalnych kursow,"
+            f" {matched_count} przystankow) w {exec_time}s.",
             flush=True,
         )
 
