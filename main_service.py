@@ -15,6 +15,7 @@ app = Flask(__name__)
 
 
 def create_empty_pb(filename):
+    """Tworzy pusty plik PB na starcie, eliminuje błędy 404."""
     feed = gtfs_realtime_pb2.FeedMessage()
     feed.header.gtfs_realtime_version = "2.0"
     feed.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
@@ -68,7 +69,7 @@ def update_loop():
     if "route_short_name" not in my_gtfs.columns:
         my_gtfs = my_gtfs.merge(routes, on="route_id")
 
-    # PRE-INDEXING (Szybkie wyszukiwanie w słowniku zamiast wolnego DataFrame)
+    # Szybki indeks słownikowy O(1)
     gtfs_index = defaultdict(list)
     for _, row in my_gtfs.iterrows():
         try:
@@ -92,6 +93,8 @@ def update_loop():
 
     print("Serwis wystartowal! Tworzenie trip_updates.pb oraz vehicle_positions.pb...\n", flush=True)
 
+    debug_printed = False
+
     while True:
         start_time = time.time()
         all_live_departures = []
@@ -99,11 +102,26 @@ def update_loop():
         stop_keys = list(stop_map.keys())
         tasks = [(k, headers) for k in stop_keys]
 
-        # OPTYMALIZACJA WĄTKÓW (12 optymalne pod darmowe CPU Render)
         with ThreadPoolExecutor(max_workers=12) as executor:
             results = executor.map(fetch_stop_departures, tasks)
             for res in results:
                 all_live_departures.extend(res)
+
+        # Jednorazowy podgląd struktury JSON w logach
+        if not debug_printed and all_live_departures:
+            print("\n--- PRZYKŁADOWY OBIEKT ODJAZDU (DEBUG) ---", flush=True)
+            print(json.dumps(all_live_departures[0], indent=2, ensure_ascii=False), flush=True)
+            print("-------------------------------------------\n", flush=True)
+            
+            try:
+                m_res = requests.get("https://pksgostynin.kiedyprzyjedzie.pl/api/map", headers=headers, timeout=2.0)
+                print(f"Status /api/map: {m_res.status_code}", flush=True)
+                if m_res.status_code == 200:
+                    print("Przykładowe dane z /api/map:", str(m_res.json())[:300], flush=True)
+            except Exception as e:
+                print(f"Blad /api/map: {e}", flush=True)
+
+            debug_printed = True
 
         feed_tu = gtfs_realtime_pb2.FeedMessage()
         feed_tu.header.gtfs_realtime_version = "2.0"
@@ -116,7 +134,6 @@ def update_loop():
         feed_vp.header.timestamp = int(datetime.now().timestamp())
 
         matched_count = 0
-        processed_executions = set()
 
         for dep in all_live_departures:
             kp_stop_id = dep.get("kp_stop_id")
@@ -125,14 +142,10 @@ def update_loop():
             delay_minutes = dep.get("time_diff", 0)
             delay_seconds = int(delay_minutes * 60)
 
-            trip_exec_id = dep.get("trip_execution_id")
-
             if kp_stop_id not in stop_map:
                 continue
 
             my_stop_id = str(stop_map[kp_stop_id]["my_stop_id"])
-
-            # Szybki lookup w słowniku
             candidates = gtfs_index.get((kp_line, my_stop_id), [])
             if not candidates:
                 continue
@@ -156,7 +169,6 @@ def update_loop():
                 my_trip_id = best_match["trip_id"]
                 my_stop_sequence = best_match["stop_sequence"]
 
-                # --- TripUpdate ---
                 entity_tu = feed_tu.entity.add()
                 entity_tu.id = f"tu_{my_trip_id}"
                 trip_update = entity_tu.trip_update
@@ -169,62 +181,8 @@ def update_loop():
                 stu.departure.delay = delay_seconds
 
                 matched_count += 1
-
             except Exception:
                 continue
-
-            # --- VehiclePosition (wyciąganie GPS z obiektu dep/veh) ---
-            if trip_exec_id and trip_exec_id not in processed_executions:
-                processed_executions.add(trip_exec_id)
-
-                lat = dep.get("lat") or dep.get("latitude")
-                lon = dep.get("lon") or dep.get("longitude") or dep.get("lng")
-                veh_obj = dep.get("vehicle") or dep.get("execution") or {}
-
-                if not lat and isinstance(veh_obj, dict):
-                    lat = veh_obj.get("lat") or veh_obj.get("latitude")
-                    lon = veh_obj.get("lon") or veh_obj.get("longitude") or veh_obj.get("lng")
-
-                if lat and lon:
-                    try:
-                        entity_vp = feed_vp.entity.add()
-                        entity_vp.id = f"vp_{my_trip_id}"
-                        vp = entity_vp.vehicle
-                        vp.trip.trip_id = my_trip_id
-                        vp.vehicle.id = str(
-                            (veh_obj.get("id") if isinstance(veh_obj, dict) else None)
-                            or trip_exec_id
-                        )
-                        vp.vehicle.label = str(kp_line)
-                        vp.position.latitude = float(lat)
-                        vp.position.longitude = float(lon)
-                        vp.timestamp = int(datetime.now().timestamp())
-                    except Exception:
-                        pass
-
-        # Pobieranie pojazdów bezpośrednio z API mapy (jeśli brakowało pozycji w odjazdach)
-        if len(feed_vp.entity) == 0:
-            try:
-                map_url = "https://pksgostynin.kiedyprzyjedzie.pl/api/vehicles"
-                m_res = requests.get(map_url, headers=headers, timeout=2.0)
-                if m_res.status_code == 200:
-                    v_list = m_res.json()
-                    if isinstance(v_list, list):
-                        for v in v_list:
-                            v_lat = v.get("lat") or v.get("latitude")
-                            v_lon = v.get("lon") or v.get("longitude")
-                            v_line = str(v.get("line_name", "")).strip()
-                            if v_lat and v_lon:
-                                entity_vp = feed_vp.entity.add()
-                                entity_vp.id = f"vp_map_{v.get('id', time.time())}"
-                                vp = entity_vp.vehicle
-                                vp.vehicle.id = str(v.get("id", "bus"))
-                                vp.vehicle.label = v_line
-                                vp.position.latitude = float(v_lat)
-                                vp.position.longitude = float(v_lon)
-                                vp.timestamp = int(datetime.now().timestamp())
-            except Exception:
-                pass
 
         with open("trip_updates.pb", "wb") as f:
             f.write(feed_tu.SerializeToString())
