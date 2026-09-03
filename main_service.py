@@ -31,12 +31,14 @@ def fetch_stop_departures(args):
     try:
         res = requests.get(url, headers=headers, timeout=2.0)
         if res.status_code == 200:
-            departures = res.json().get("rows", [])
+            data = res.json()
+            print(f"[DEBUG] raw response for {kp_stop_id}: {json.dumps(data)[:500]}", flush=True)
+            departures = data.get("rows", [])
             for dep in departures:
                 dep["kp_stop_id"] = kp_stop_id
             return departures
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[DEBUG] Error fetching {kp_stop_id}: {e}", flush=True)
     return []
 
 
@@ -161,7 +163,6 @@ def update_loop():
                 my_trip_id = best_match["trip_id"]
                 my_stop_sequence = best_match["stop_sequence"]
 
-                # Konstrukcja daty i godziny stempla w strefie polskiej (UTC+2)
                 sched_dt = datetime(
                     now_poland.year, now_poland.month, now_poland.day,
                     best_match["hour"] % 24, best_match["minute"],
@@ -181,7 +182,6 @@ def update_loop():
             except Exception:
                 continue
 
-        # Tworzenie wyjścia GTFS-RT bez powielania encji trip_id
         for trip_id, stop_updates in updates_by_trip.items():
             entity_tu = feed_tu.entity.add()
             entity_tu.id = f"tu_{trip_id}"
