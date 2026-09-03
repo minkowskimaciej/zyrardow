@@ -142,35 +142,43 @@ def update_loop():
         if trip_exec_id and trip_exec_id not in processed_executions:
           processed_executions.add(trip_exec_id)
 
-          encoded_exec_id = base64.b64encode(str(trip_exec_id).encode()).decode()
-          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded_exec_id}"
+          urls_to_try = [
+              f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{trip_exec_id}",
+              f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{base64.b64encode(str(trip_exec_id).encode()).decode()}",
+          ]
 
-          try:
-            exec_res = requests.get(exec_url, headers=headers, timeout=2)
-            if exec_res.status_code == 200:
-              exec_data = exec_res.json()
-              vehicle_info = exec_data.get("vehicle")
+          for exec_url in urls_to_try:
+            try:
+              exec_res = requests.get(exec_url, headers=headers, timeout=2)
+              if exec_res.status_code == 200:
+                exec_data = exec_res.json()
+                vehicle_info = exec_data.get("vehicle")
 
-              if (
-                  vehicle_info
-                  and "lat" in vehicle_info
-                  and "lon" in vehicle_info
-              ):
-                entity_vp = feed_vp.entity.add()
-                entity_vp.id = f"vp_{my_trip_id}"
+                if (
+                    vehicle_info
+                    and "lat" in vehicle_info
+                    and "lon" in vehicle_info
+                ):
+                  entity_vp = feed_vp.entity.add()
+                  entity_vp.id = f"vp_{my_trip_id}"
 
-                vp = entity_vp.vehicle
-                vp.trip.trip_id = my_trip_id
+                  vp = entity_vp.vehicle
+                  vp.trip.trip_id = my_trip_id
 
-                vehicle_name = vehicle_info.get("name") or vehicle_info.get("id") or str(trip_exec_id)
-                vp.vehicle.id = str(vehicle_name)
-                vp.vehicle.label = str(kp_line)
+                  veh_id = (
+                      vehicle_info.get("id")
+                      or vehicle_info.get("name")
+                      or str(trip_exec_id)
+                  )
+                  vp.vehicle.id = str(veh_id)
+                  vp.vehicle.label = str(kp_line)
 
-                vp.position.latitude = float(vehicle_info["lat"])
-                vp.position.longitude = float(vehicle_info["lon"])
-                vp.timestamp = int(datetime.now().timestamp())
-          except Exception:
-            pass
+                  vp.position.latitude = float(vehicle_info["lat"])
+                  vp.position.longitude = float(vehicle_info["lon"])
+                  vp.timestamp = int(datetime.now().timestamp())
+                  break
+            except Exception:
+              pass
 
         matched_count += 1
 
