@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 
 def update_loop():
-  print("Ladowanie mapy slupkow i plikow GTFS Static...")
+  print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
   with open("stop_map_auto.json", "r", encoding="utf-8") as f:
     stop_map = json.load(f)
 
@@ -25,7 +25,11 @@ def update_loop():
   stop_times["static_time"] = (
       stop_times["departure_time"].str.strip().str.slice(0, 5)
   )
-  my_gtfs = stop_times.merge(trips, on="trip_id").merge(routes, on="route_id")
+  my_gtfs = stop_times.merge(trips, on="route_id" if "route_id" in trips else "trip_id", suffixes=('', '_y'))
+
+  # Próba dopasowania połączonej tabeli GTFS
+  if "route_short_name" not in my_gtfs.columns:
+    my_gtfs = stop_times.merge(trips, on="trip_id").merge(routes, on="route_id")
 
   headers = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -34,14 +38,14 @@ def update_loop():
 
   print(
       "Serwis wystartowal! Tworzenie trip_updates.pb oraz"
-      " vehicle_positions.pb...\n"
+      " vehicle_positions.pb...\n",
+      flush=True,
   )
 
   while True:
     start_time = time.time()
     all_live_departures = []
 
-    # 1. Pobieranie odjazdów ze wszystkich przystanków
     for kp_stop_id in stop_map.keys():
       url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/departures/{kp_stop_id}"
       try:
@@ -76,7 +80,6 @@ def update_loop():
       delay_seconds = int(delay_minutes * 60)
 
       trip_exec_id = dep.get("trip_execution_id")
-      trip_index = dep.get("trip_index")
 
       if kp_stop_id not in stop_map:
         continue
@@ -84,8 +87,8 @@ def update_loop():
       my_stop_id = stop_map[kp_stop_id]["my_stop_id"]
 
       candidates = my_gtfs[
-          (my_gtfs["route_short_name"].str.strip() == kp_line)
-          & (my_gtfs["stop_id"] == my_stop_id)
+          (my_gtfs["route_short_name"].astype(str).str.strip() == kp_line)
+          & (my_gtfs["stop_id"].astype(str) == str(my_stop_id))
       ].copy()
 
       if candidates.empty:
@@ -111,7 +114,7 @@ def update_loop():
         best_match = valid_candidates.loc[
             valid_candidates["time_diff_abs"].idxmin()
         ]
-        my_trip_id = best_match["trip_id"]
+        my_trip_id = str(best_match["trip_id"])
         my_stop_sequence = int(best_match["stop_sequence"])
 
         # --- TripUpdate ---
@@ -124,23 +127,16 @@ def update_loop():
         )
 
         stu = trip_update.stop_time_update.add()
-        stu.stop_id = my_stop_id
+        stu.stop_id = str(my_stop_id)
         stu.stop_sequence = my_stop_sequence
         stu.departure.delay = delay_seconds
 
         # --- VehiclePosition ---
-        if (
-            trip_exec_id
-            and trip_index is not None
-            and trip_exec_id not in processed_executions
-        ):
+        if trip_exec_id and trip_exec_id not in processed_executions:
           processed_executions.add(trip_exec_id)
 
-          # Zakodowanie trip_execution_id do Base64
-          raw_bytes = str(trip_exec_id).encode("utf-8")
-          b64_id = base64.b64encode(raw_bytes).decode("utf-8")
-
-          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{b64_id}/{trip_index}"
+          # Bezpośredni URL pobierania bez kodowania (API KiedyPrzyjedzie obsługuje raw ID)
+          exec_url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{trip_exec_id}"
 
           try:
             exec_res = requests.get(exec_url, headers=headers, timeout=2)
@@ -179,7 +175,8 @@ def update_loop():
     current_hour = datetime.now().strftime("%H:%M:%S")
     print(
         f"[{current_hour}] Zaktualizowano GTFS-RT ({matched_count} kursow,"
-        f" {len(feed_vp.entity)} pozycji GPS) w {exec_time}s."
+        f" {len(feed_vp.entity)} pozycji GPS) w {exec_time}s.",
+        flush=True,
     )
 
     time.sleep(2)
