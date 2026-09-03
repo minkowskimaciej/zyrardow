@@ -5,7 +5,7 @@ import json
 import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from flask import Flask, send_file
 from google.transit import gtfs_realtime_pb2
@@ -32,14 +32,34 @@ def fetch_stop_departures(args):
         res = requests.get(url, headers=headers, timeout=2.0)
         if res.status_code == 200:
             data = res.json()
-            print(f"[DEBUG] raw response for {kp_stop_id}: {json.dumps(data)[:500]}", flush=True)
             departures = data.get("rows", [])
             for dep in departures:
                 dep["kp_stop_id"] = kp_stop_id
             return departures
     except Exception as e:
-        print(f"[DEBUG] Error fetching {kp_stop_id}: {e}", flush=True)
+        print(f"[DEBUG] Blad pobierania z przystanku {kp_stop_id}: {e}", flush=True)
     return []
+
+
+def parse_kp_time_to_hm(time_str, now_poland):
+    """Zwraca (hour, minute) na podstawie stringa z API KiedyPrzyjedzie,
+    który bywa w formacie 'HH:MM' (odległe odjazdy) albo 'X min' / '< 1 min' (bliskie)."""
+    time_str = time_str.strip()
+    if ":" in time_str:
+        h, m = time_str.split(":")
+        return int(h) % 24, int(m)
+
+    # Format względny: "23 min", "1 min", "< 1 min"
+    if time_str.startswith("<"):
+        minutes_from_now = 0
+    else:
+        digits = "".join(c for c in time_str.split()[0] if c.isdigit())
+        if not digits:
+            raise ValueError(f"nieznany format czasu: {time_str!r}")
+        minutes_from_now = int(digits)
+
+    target = now_poland + timedelta(minutes=minutes_from_now)
+    return target.hour, target.minute
 
 
 def update_loop():
@@ -79,7 +99,7 @@ def update_loop():
             stop = str(row["stop_id"]).strip()
             time_parts = str(row["static_time"]).split(":")
             total_min = int(time_parts[0]) * 60 + int(time_parts[1])
-            
+
             gtfs_index[(line, stop)].append({
                 "trip_id": str(row["trip_id"]),
                 "stop_sequence": int(row["stop_sequence"]),
@@ -97,7 +117,7 @@ def update_loop():
 
     tz_poland = ZoneInfo("Europe/Warsaw")
 
-    print("Serwis wystartowal! Strefa Europe/Warsaw aktywna...\n", flush=True)
+    print("Serwis wystartowal! Strefa Europe/Warsaw oraz podwójne parsowanie czasu aktywne...\n", flush=True)
 
     while True:
         start_time = time.time()
@@ -130,7 +150,7 @@ def update_loop():
             kp_stop_id = dep.get("kp_stop_id")
             kp_line = str(dep.get("line_name", "")).strip()
             kp_time = str(dep.get("static_time", "")).strip()
-            
+
             delay_minutes = dep.get("time_diff", 0)
             if delay_minutes is None:
                 delay_minutes = 0
@@ -145,8 +165,8 @@ def update_loop():
                 continue
 
             try:
-                kp_parts = kp_time.split(":")
-                kp_total_minutes = int(kp_parts[0]) * 60 + int(kp_parts[1])
+                kp_hour, kp_minute = parse_kp_time_to_hm(kp_time, now_poland)
+                kp_total_minutes = kp_hour * 60 + kp_minute
 
                 best_match = None
                 min_diff = 999
@@ -179,13 +199,14 @@ def update_loop():
                 })
 
                 matched_count += 1
-            except Exception:
+            except Exception as e:
+                print(f"[SKIP] {kp_line} o czasie {kp_time!r}: {e}", flush=True)
                 continue
 
         for trip_id, stop_updates in updates_by_trip.items():
             entity_tu = feed_tu.entity.add()
             entity_tu.id = f"tu_{trip_id}"
-            
+
             trip_update = entity_tu.trip_update
             trip_update.trip.trip_id = trip_id
             trip_update.trip.schedule_relationship = gtfs_realtime_pb2.TripDescriptor.SCHEDULED
@@ -194,10 +215,10 @@ def update_loop():
                 stu = trip_update.stop_time_update.add()
                 stu.stop_id = update["stop_id"]
                 stu.stop_sequence = update["stop_sequence"]
-                
+
                 stu.arrival.delay = update["delay"]
                 stu.arrival.time = update["estimated_time"]
-                
+
                 stu.departure.delay = update["delay"]
                 stu.departure.time = update["estimated_time"]
 
