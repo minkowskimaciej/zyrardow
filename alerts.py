@@ -7,8 +7,8 @@ from google.transit import gtfs_realtime_pb2
 ALERTS = [
     {
         "id": "ztc-bike-race-2026",
-        "start": "2026-09-09 06:00:00",
-        "end": "2026-09-09 20:00:00",
+        "start": "2026-09-13 06:00:00",
+        "end": "2026-09-13 20:00:00",
         "cause": "MAINTENANCE",
         "effect": "DETOUR",
         "header": "ŻTC Bike Race",
