@@ -14,7 +14,7 @@ ALERTS = [
         "header": "ŻTC Bike Race",
         "description": (
             "Linie 5 i 0 kursują z pominięciem przystanku "
-            '"Zalew Żyrardowski" w godz. 6:00-20:00 (13.09) '
+            '"Zalew Żyrardowski" w godz. 6:00-20:00 13.09 '
             "z powodu finału ŻTC Bike Race."
         ),
         "route_ids": ["5", "0"],
