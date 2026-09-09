@@ -12,6 +12,8 @@ from google.transit import gtfs_realtime_pb2
 import pandas as pd
 import requests
 
+from alerts import build_alerts_feed
+
 app = Flask(__name__)
 
 HTTP_SESSION = requests.Session()
@@ -96,6 +98,7 @@ def update_loop():
 
     create_empty_pb("trip_updates.pb")
     create_empty_pb("vehicle_positions.pb")
+    create_empty_pb("alerts.pb")
 
     try:
         with open("stop_map_auto.json", "r", encoding="utf-8") as f:
@@ -302,6 +305,9 @@ def update_loop():
         with open("vehicle_positions.pb", "wb") as f:
             f.write(feed_vp.SerializeToString())
 
+        with open("alerts.pb", "wb") as f:
+            f.write(build_alerts_feed())
+
         exec_time = round(time.time() - start_time, 2)
         current_hour = datetime.now(tz_poland).strftime("%H:%M:%S")
 
@@ -334,6 +340,13 @@ def serve_trip_updates():
 def serve_vehicle_positions():
     if os.path.exists("vehicle_positions.pb"):
         return send_file_no_cache("vehicle_positions.pb")
+    return "Trwa generowanie pliku...", 404
+
+
+@app.route("/alerts.pb")
+def serve_alerts():
+    if os.path.exists("alerts.pb"):
+        return send_file_no_cache("alerts.pb")
     return "Trwa generowanie pliku...", 404
 
 
