@@ -24,7 +24,7 @@ ALERTS = [
         "end": None,  # Alert bezterminowy / do odwołania
         "cause": "CONSTRUCTION",
         "effect": "DETOUR",
-        "header": "Objazd - budowa drogi",
+        "header": "Budowa drogi do Wiskitek",
         "description": (
             "Linie 4 i 8 kursują objazdem do odwołania z powodu budowy drogi do Wiskitek."
         ),
