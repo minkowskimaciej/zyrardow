@@ -21,7 +21,7 @@ adapter = requests.adapters.HTTPAdapter(pool_connections=50, pool_maxsize=50)
 HTTP_SESSION.mount("https://", adapter)
 HTTP_SESSION.mount("http://", adapter)
 
-EXECUTOR = ThreadPoolExecutor(max_workers=30)
+EXECUTOR = ThreadPoolExecutor(max_workers=5)
 
 
 def create_empty_pb(filename):
