@@ -1,27 +1,14 @@
-import base64
-from concurrent.futures import ThreadPoolExecutor
-from collections import defaultdict
-import json
 import os
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 from flask import Flask, send_file, make_response
 from google.transit import gtfs_realtime_pb2
-import pandas as pd
-import requests
 
 from alerts import build_alerts_feed
 
 app = Flask(__name__)
-
-HTTP_SESSION = requests.Session()
-adapter = requests.adapters.HTTPAdapter(pool_connections=50, pool_maxsize=50)
-HTTP_SESSION.mount("https://", adapter)
-HTTP_SESSION.mount("http://", adapter)
-
-EXECUTOR = ThreadPoolExecutor(max_workers=5)
 
 
 def create_empty_pb(filename):
@@ -34,286 +21,27 @@ def create_empty_pb(filename):
         f.write(feed.SerializeToString())
 
 
-def fetch_stop_departures(args):
-    kp_stop_id, headers = args
-    url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/departures/{kp_stop_id}"
-    try:
-        res = HTTP_SESSION.get(url, headers=headers, timeout=2.0)
-        if res.status_code == 200:
-            data = res.json()
-            departures = data.get("rows", [])
-            for dep in departures:
-                dep["kp_stop_id"] = kp_stop_id
-            return departures
-    except Exception:
-        pass
-    return []
-
-
-def fetch_vehicle_position(trip_execution_id, headers):
-    """Pobiera żywą pozycję pojazdu dla danego trip_execution_id."""
-    encoded = base64.b64encode(trip_execution_id.encode()).decode()
-    url = f"https://pksgostynin.kiedyprzyjedzie.pl/api/trip_execution/{encoded}/0"
-    try:
-        res = HTTP_SESSION.get(url, headers=headers, timeout=2.0)
-        if res.status_code == 200:
-            return res.json()
-    except Exception:
-        pass
-    return None
-
-
-def fetch_and_add_vehicle(trip_id, trip_exec_id, headers):
-    """Pobiera pozycję z API i zwraca krotkę (trip_id, vehicle) w przypadku sukcesu."""
-    data = fetch_vehicle_position(trip_exec_id, headers)
-    if not data:
-        return None
-    vehicle = data.get("vehicle")
-    if not vehicle or "lat" not in vehicle or "lon" not in vehicle:
-        return None
-    return (trip_id, vehicle)
-
-
-def parse_kp_time_to_hm(time_str, now_poland):
-    """Zwraca (hour, minute) na podstawie stringa z API kiedyPrzyjedzie."""
-    time_str = time_str.strip()
-    if not time_str:
-        return now_poland.hour, now_poland.minute
-    if ":" in time_str:
-        h, m = time_str.split(":")
-        return int(h) % 24, int(m)
-    if time_str.startswith("<"):
-        minutes_from_now = 0
-    else:
-        digits = "".join(c for c in time_str.split()[0] if c.isdigit())
-        if not digits:
-            raise ValueError(f"nieznany format czasu: {time_str!r}")
-        minutes_from_now = int(digits)
-    target = now_poland + timedelta(minutes=minutes_from_now)
-    return target.hour, target.minute
-
-
 def update_loop():
-    print("Ladowanie mapy slupkow i plikow GTFS Static...", flush=True)
-
-    create_empty_pb("trip_updates.pb")
-    create_empty_pb("vehicle_positions.pb")
     create_empty_pb("alerts.pb")
-
-    try:
-        with open("stop_map_auto.json", "r", encoding="utf-8") as f:
-            stop_map = json.load(f)
-    except Exception as e:
-        print(f"Blad ladowania stop_map_auto.json: {e}", flush=True)
-        stop_map = {}
-
-    csv_kwargs = {"dtype": str, "on_bad_lines": "skip", "engine": "python"}
-    routes = pd.read_csv("routes.txt", **csv_kwargs)
-    trips = pd.read_csv("trips.txt", **csv_kwargs)
-    stop_times = pd.read_csv("stop_times.txt", **csv_kwargs)
-
-    stop_times["static_time"] = (
-        stop_times["departure_time"].str.strip().str.slice(0, 5)
-    )
-
-    if "route_id" in trips.columns and "route_id" in stop_times.columns:
-        my_gtfs = stop_times.merge(trips, on="route_id", suffixes=("", "_y"))
-    else:
-        my_gtfs = stop_times.merge(trips, on="trip_id")
-
-    if "route_short_name" not in my_gtfs.columns:
-        my_gtfs = my_gtfs.merge(routes, on="route_id")
-
-    gtfs_index = defaultdict(list)
-    for _, row in my_gtfs.iterrows():
-        try:
-            line = str(row["route_short_name"]).strip()
-            stop = str(row["stop_id"]).strip()
-            time_parts = str(row["static_time"]).split(":")
-
-            h_raw = int(time_parts[0])
-            m = int(time_parts[1])
-            total_min = (h_raw % 24) * 60 + m
-
-            gtfs_index[(line, stop)].append({
-                "trip_id": str(row["trip_id"]),
-                "stop_sequence": int(row["stop_sequence"]),
-                "total_min": total_min,
-                "hour": h_raw,
-                "minute": m
-            })
-        except Exception:
-            continue
-
-    headers = {
-        "User-Agent": "ZyrardowGTFS-RT/1.0 (+https://github.com/minkowskimaciej/zyrardow)",
-        "Accept": "application/json",
-    }
-
     tz_poland = ZoneInfo("Europe/Warsaw")
 
-    print("Serwis wystartowal! Strefa Europe/Warsaw, pula polaczen HTTP=50 oraz 30 watkow aktywne...\n", flush=True)
+    print("Serwis wystartował! Moduł Alerts aktywny...\n", flush=True)
 
     while True:
         start_time = time.time()
-        now_poland = datetime.now(tz_poland)
-        now_ts = int(now_poland.timestamp())
 
-        all_live_departures = []
-        stop_keys = list(stop_map.keys())
-        tasks = [(k, headers) for k in stop_keys]
-
-        # 1. Pobieranie odjazdów ze słupków
-        fetch_start = time.time()
-        results = EXECUTOR.map(fetch_stop_departures, tasks)
-        for res in results:
-            all_live_departures.extend(res)
-        fetch_time = round(time.time() - fetch_start, 2)
-
-        # 2. Dopasowywanie opóźnień do GTFS
-        match_start = time.time()
-
-        feed_tu = gtfs_realtime_pb2.FeedMessage()
-        feed_tu.header.gtfs_realtime_version = "2.0"
-        feed_tu.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
-        feed_tu.header.timestamp = now_ts
-
-        feed_vp = gtfs_realtime_pb2.FeedMessage()
-        feed_vp.header.gtfs_realtime_version = "2.0"
-        feed_vp.header.incrementality = gtfs_realtime_pb2.FeedHeader.FULL_DATASET
-        feed_vp.header.timestamp = now_ts
-
-        updates_by_trip = defaultdict(list)
-        trip_execution_by_trip = {}
-        matched_count = 0
-
-        for dep in all_live_departures:
-            kp_stop_id = dep.get("kp_stop_id")
-            kp_line = str(dep.get("line_name", "")).strip()
-            kp_time = str(dep.get("static_time", "") or "").strip()
-            kp_trip_exec_id = str(dep.get("trip_execution_id", "")).strip()
-
-            delay_minutes = dep.get("time_diff", 0)
-            if delay_minutes is None:
-                delay_minutes = 0
-            delay_seconds = int(delay_minutes * 60)
-
-            if kp_stop_id not in stop_map:
-                continue
-
-            my_stop_id = str(stop_map[kp_stop_id]["my_stop_id"])
-            candidates = gtfs_index.get((kp_line, my_stop_id), [])
-            if not candidates:
-                continue
-
-            try:
-                kp_hour, kp_minute = parse_kp_time_to_hm(kp_time, now_poland)
-                kp_total_minutes = kp_hour * 60 + kp_minute
-
-                best_match = None
-                min_diff = 999
-
-                for cand in candidates:
-                    raw_diff = abs(cand["total_min"] - kp_total_minutes)
-                    diff = min(raw_diff, 1440 - raw_diff)
-                    if diff <= 30 and diff < min_diff:
-                        min_diff = diff
-                        best_match = cand
-
-                if not best_match:
-                    continue
-
-                my_trip_id = best_match["trip_id"]
-                my_stop_sequence = best_match["stop_sequence"]
-
-                sched_dt = datetime(
-                    now_poland.year, now_poland.month, now_poland.day,
-                    best_match["hour"] % 24, best_match["minute"],
-                    tzinfo=tz_poland
-                )
-                scheduled_timestamp = int(sched_dt.timestamp())
-
-                # ZASADA 15 MINUT: Resetowanie do rozkładu przy opóźnieniu > 15 min (900 s)
-                if abs(delay_seconds) > 900:
-                    delay_seconds = 0
-                    estimated_timestamp = scheduled_timestamp
-                else:
-                    estimated_timestamp = scheduled_timestamp + delay_seconds
-
-                updates_by_trip[my_trip_id].append({
-                    "stop_id": my_stop_id,
-                    "stop_sequence": my_stop_sequence,
-                    "delay": delay_seconds,
-                    "estimated_time": estimated_timestamp
-                })
-
-                if kp_trip_exec_id:
-                    trip_execution_by_trip[my_trip_id] = kp_trip_exec_id
-
-                matched_count += 1
-            except Exception:
-                continue
-
-        # Generowanie treści FeedMessage TripUpdates
-        for trip_id, stop_updates in updates_by_trip.items():
-            entity_tu = feed_tu.entity.add()
-            entity_tu.id = f"tu_{trip_id}"
-
-            trip_update = entity_tu.trip_update
-            trip_update.trip.trip_id = trip_id
-            trip_update.trip.schedule_relationship = gtfs_realtime_pb2.TripDescriptor.SCHEDULED
-
-            for update in stop_updates:
-                stu = trip_update.stop_time_update.add()
-                stu.stop_id = update["stop_id"]
-                stu.stop_sequence = update["stop_sequence"]
-
-                stu.arrival.delay = update["delay"]
-                stu.arrival.time = update["estimated_time"]
-
-                stu.departure.delay = update["delay"]
-                stu.departure.time = update["estimated_time"]
-
-        match_time = round(time.time() - match_start, 2)
-
-        # 3. Pobieranie pozycji pojazdów dla dopasowanych kursów
-        vp_start = time.time()
-        vp_tasks = [(tid, eid, headers) for tid, eid in trip_execution_by_trip.items()]
-        vp_results = EXECUTOR.map(lambda args: fetch_and_add_vehicle(*args), vp_tasks)
-
-        vp_count = 0
-        for result in vp_results:
-            if result is None:
-                continue
-            trip_id, vehicle = result
-            entity_vp = feed_vp.entity.add()
-            entity_vp.id = f"vp_{trip_id}"
-
-            vp = entity_vp.vehicle
-            vp.trip.trip_id = trip_id
-            vp.position.latitude = float(vehicle["lat"])
-            vp.position.longitude = float(vehicle["lon"])
-            vp.timestamp = now_ts
-            vp_count += 1
-
-        vp_time = round(time.time() - vp_start, 2)
-
-        # Zapis do plików binarnych PB
-        with open("trip_updates.pb", "wb") as f:
-            f.write(feed_tu.SerializeToString())
-
-        with open("vehicle_positions.pb", "wb") as f:
-            f.write(feed_vp.SerializeToString())
-
-        with open("alerts.pb", "wb") as f:
-            f.write(build_alerts_feed())
+        # Zapis alertów do pliku binarnego PB
+        try:
+            with open("alerts.pb", "wb") as f:
+                f.write(build_alerts_feed())
+        except Exception as e:
+            print(f"Błąd podczas generowania alerts.pb: {e}", flush=True)
 
         exec_time = round(time.time() - start_time, 2)
         current_hour = datetime.now(tz_poland).strftime("%H:%M:%S")
 
         print(
-            f"[{current_hour}] GTFS-RT updated ({len(updates_by_trip)} trips, {matched_count} stops, {vp_count} vehicles) "
-            f"| Total: {exec_time}s (fetch={fetch_time}s, match={match_time}s, vp={vp_time}s)",
+            f"[{current_hour}] GTFS-RT Alerts updated | Duration: {exec_time}s",
             flush=True,
         )
 
@@ -329,20 +57,6 @@ def send_file_no_cache(filename):
     return response
 
 
-@app.route("/trip_updates.pb")
-def serve_trip_updates():
-    if os.path.exists("trip_updates.pb"):
-        return send_file_no_cache("trip_updates.pb")
-    return "Trwa generowanie pliku...", 404
-
-
-@app.route("/vehicle_positions.pb")
-def serve_vehicle_positions():
-    if os.path.exists("vehicle_positions.pb"):
-        return send_file_no_cache("vehicle_positions.pb")
-    return "Trwa generowanie pliku...", 404
-
-
 @app.route("/alerts.pb")
 def serve_alerts():
     if os.path.exists("alerts.pb"):
@@ -352,7 +66,7 @@ def serve_alerts():
 
 @app.route("/")
 def index():
-    return "Serwis GTFS-RT Żyrardów działa poprawnie!"
+    return "Serwis GTFS-RT Alerts działa poprawnie!"
 
 
 if __name__ == "__main__":
