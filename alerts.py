@@ -9,7 +9,7 @@ ALERTS = [
         "id": "ztc-bike-race-2026",
         "start": "2026-09-13 06:00:00",
         "end": "2026-09-13 20:00:00",
-        "cause": "MAINTENANCE",
+        "cause": "DEMONSTRATION",
         "effect": "DETOUR",
         "header": "ŻTC Bike Race",
         "description": (
