@@ -29,7 +29,7 @@ ALERTS = [
             "Linie 4 i 8 kursują objazdem do odwołania z powodu budowy drogi do Wiskitek."
         ),
         "route_ids": ["4", "8"],
-        "stop_ids": ["dzialki-osp-51", "wiskitki-szkola-51"],
+        "stop_ids": ["dzialki-osp-51", "wiskitki-szkola-51", "wiskitki-folus-01", "wiskitki-folus-02", "dzialki-osp-01", "dzialki-osp-02", "dzialki-male-01", "dzialki-male-02", "wiskitki-szkola-01", "wiskitki-szkola-02"],
     },
 ]
 
