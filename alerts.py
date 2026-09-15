@@ -4,34 +4,7 @@ from zoneinfo import ZoneInfo
 from google.transit import gtfs_realtime_pb2
 
 # ---- Konfiguracja alertów ----
-ALERTS = [
-    {
-        "id": "ztc-bike-race-2026",
-        "start": "2026-09-13 06:00:00",
-        "end": "2026-09-13 20:00:00",
-        "cause": "DEMONSTRATION",
-        "effect": "DETOUR",
-        "header": "ŻTC Bike Race",
-        "description": (
-            "Linie 5 i 0 kursują z pominięciem przystanku Zalew Żyrardowski w godz. 6:00-20:00 13.09 z powodu finału ŻTC Bike Race."
-        ),
-        "route_ids": ["5", "0"],
-        "stop_ids": ["zalew-zyrardowski-01"],
-    },
-    {
-        "id": "wiskitki-2026",
-        "start": "2026-09-09 06:00:00",
-        "end": None,  # Alert bezterminowy / do odwołania
-        "cause": "CONSTRUCTION",
-        "effect": "DETOUR",
-        "header": "Budowa drogi do Wiskitek",
-        "description": (
-            "Linie 4 i 8 kursują objazdem do odwołania z powodu budowy drogi do Wiskitek."
-        ),
-        "route_ids": ["4", "8"],
-        "stop_ids": ["dzialki-osp-51", "wiskitki-szkola-51", "wiskitki-folus-01", "wiskitki-folus-02", "dzialki-osp-01", "dzialki-osp-02", "dzialki-male-01", "dzialki-male-02", "wiskitki-szkola-01", "wiskitki-szkola-02"],
-    },
-]
+ALERTS = []
 
 
 def _to_timestamp(date_str: str | None) -> int | None:
