@@ -4,7 +4,19 @@ from zoneinfo import ZoneInfo
 from google.transit import gtfs_realtime_pb2
 
 # ---- Konfiguracja alertów ----
-ALERTS = []
+ALERTS = [
+    {
+        "id": "alert-nietrzebki-linia-2",
+        "start": "2026-10-08 00:00:00",
+        "end": None,  # Brak podanej daty końca w komunikacie
+        "cause": "CONSTRUCTION",
+        "effect": "SIGNIFICANT_DELAYS",  # Można też użyć DIVERSION, zależnie od preferencji
+        "header": "Przebudowa odcinka ul. Nietrzebki – objazd linii nr 2",
+        "description": "W związku z przebudową ul. Nietrzebki zmieniona zostaje trasa linii 2, przystanek Parkingowa 01 jest usunięty z jej trasy",
+        "route_ids": ["2"],
+        "stop_ids": ["parkingowa-51", "parkingowa-01"]
+    }
+]
 
 
 def _to_timestamp(date_str: str | None) -> int | None:
